@@ -1,0 +1,130 @@
+{
+    "name": "child-rescue-web",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint"
+    },
+    "dependencies": {
+        "@babel/polyfill": "^7.0.0",
+        "axios": "^0.18.0",
+        "exif-js": "^2.3.0",
+        "google-maps": "^3.3.0",
+        "google-places-autocomplete-service": "0.0.3",
+        "moment": "^2.23.0",
+        "node-sass": "^4.10.0",
+        "ramda": "^0.26.1",
+        "rxjs": "^6.5.2",
+        "rxjs-compat": "^6.5.2",
+        "sass-loader": "^7.1.0",
+        "vue": "^2.5.17",
+        "vue-axios": "^2.1.4",
+        "vue-cropperjs": "^3.0.0",
+        "vue-google-autocomplete": "^1.1.0",
+        "vue-i18n": "^8.8.2",
+        "vue-native-websocket": "^2.0.12",
+        "vue-router": "^3.0.1",
+        "vue-rx": "^6.2.0",
+        "vue2-google-maps": "^0.10.2",
+        "vueclaw": "^1.1.0",
+        "vuetify": "^1.5.12",
+        "vuetify-google-autocomplete": "1.1.0",
+        "vuetify-image-input": "^18.15.1",
+        "vuex": "^3.0.1",
+        "vuex-persist": "^2.0.0"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "^3.0.5",
+        "@vue/cli-plugin-eslint": "^3.0.5",
+        "@vue/cli-service": "^3.8.0",
+        "@vue/eslint-config-airbnb": "^3.0.5",
+        "stylus": "^0.54.5",
+        "stylus-loader": "^3.0.1",
+        "vue-cli-plugin-vuetify": "^0.4.5",
+        "vue-template-compiler": "^2.5.17",
+        "vuetify-loader": "^1.0.5"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "browser": true,
+            "node": true,
+            "jquery": true
+        },
+        "extends": [
+            "plugin:vue/recommended",
+            "@vue/airbnb"
+        ],
+        "plugins": [
+            "vue"
+        ],
+        "rules": {
+            "object-curly-newline": "off",
+            "vue/attribute-hyphenation": [
+                "error",
+                "always"
+            ],
+            "vue/html-end-tags": "error",
+            "vue/html-indent": [
+                "error",
+                4
+            ],
+            "indent": [
+                "error",
+                4
+            ],
+            "vue/require-default-prop": "error",
+            "vue/require-prop-types": "error",
+            "vue/max-attributes-per-line": "off",
+            "vue/order-in-components": "error",
+            "newline-per-chained-call": "off",
+            "import/prefer-default-export": "off",
+            "max-len": "off",
+            "no-console": "off",
+            "no-param-reassign": "off",
+            "no-bitwise": "off",
+            "no-underscore-dangle": [
+                "error",
+                {
+                    "allow": [
+                        "_modified"
+                    ]
+                }
+            ],
+            "import/extensions": [
+                "off",
+                "always",
+                {
+                    "js": "never",
+                    "vue": "never"
+                }
+            ],
+            "no-plusplus": [
+                2,
+                {
+                    "allowForLoopAfterthoughts": true
+                }
+            ]
+        },
+        "parserOptions": {
+            "parser": "babel-eslint",
+            "ecmaVersion": 2017
+        }
+    },
+    "jshintConfig": {
+        "esversion": 6,
+        "asi": true
+    },
+    "postcss": {
+        "plugins": {
+            "autoprefixer": {}
+        }
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not ie <= 8"
+    ]
+}

@@ -1,0 +1,25 @@
+export default {
+    alerts: null,
+    alert: null,
+    alertStructure: {
+        id: '',
+        case: '',
+        geolocation_point: '',
+        radius: '',
+        address: '',
+        start: null,
+        start_time: null,
+        end: '',
+        end_time: '',
+        is_active: true,
+        description: null,
+        fullname: '',
+        disappearance_date: '',
+        date_of_birth: '',
+        eye_color: '',
+        hair_color: '',
+        height: '',
+        weight: '',
+        image: '',
+    }
+};

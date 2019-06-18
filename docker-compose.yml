@@ -1,0 +1,9 @@
+version: '3'
+services:
+
+  cr_admin_production:
+    image: registry.gitlab.com/suite5/childrescueweb:latest
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    container_name: cr_admin_production
