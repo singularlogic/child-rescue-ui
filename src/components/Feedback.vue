@@ -1,119 +1,110 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-dialog v-model="dialogFeedback" persistent max-width="900px" scrollable>
+    <v-dialog v-model="dialogFeedback" persistent max-width="900px" scrollable @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
-            <v-btn dark color="green" v-on="on">
+            <v-btn dark color="primary" v-on="on">
                 Provide Fact
             </v-btn>
         </template>
         <v-card>
             <v-card-title primary-title>
                 <div>
-                    <div class="headline">New Fact</div>
-                    <span class="grey--text">Case #{{ caseId }} - {{ fullName }}</span>
+                    <div v-if="isEditMode" class="headline">Update Fact</div>
+                    <div v-else-if="isViewMode" class="headline">Fact: {{ feedbackObject.id }}</div>
+                    <div v-else class="headline">Provide Fact</div>
+                    <a @click="goToCase()" style="color: blue;">Case #{{ caseId }} - {{ fullName }}</a>
                 </div>
             </v-card-title>
-            <v-card-text>
+            <v-divider></v-divider>
+            <v-card-text class="my-0 py-0">
                 <v-form ref="form">
                     <v-layout row wrap>
                         <v-flex xs12 sm12 md12 lg12 xl12>
-                            <v-layout row wrap>
-                                <v-flex xs12 sm12 md12 lg12 xl12>
-                                    <gmap-autocomplete class="customInputField glowing-border" autofocus
-                                                       ref="autocomplete" :types="['geocode']" :value="place"
-                                                       :rules="[rules.required]"
-                                                       @place_changed="triggerPlaceChangeEvent"/>
+                            <v-layout v-if="!isViewMode" row wrap>
+                                <v-flex xs12 sm10>
+                                    <v-text-field
+                                        ref="addressField"
+                                        v-model="place"
+                                        :rules="[rules.address, rules.required]"
+                                        label="Address"
+                                        hint="Type the address and then hit enter"
+                                        persistent-hint
+                                        prepend-icon="pin_drop"
+                                        class="textField"
+                                        @change="validateForm()"
+                                        @keyup.enter.native="triggerPlaceChangeEvent(place)"/>
                                 </v-flex>
+                                <v-flex xs12 sm2 md2 lg2 xl2>
+                                    <v-btn dark color="primary" @click="triggerPlaceChangeEvent(place)">Find address</v-btn>
+                                </v-flex>
+                                <v-flex xs12 class="mx-2 my-2">
+                                    <gmap-map :center="center" :zoom="18" :options="mapOptions" style="height: 230px;">
+                                        <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
+                                                     :draggable="false" @click="center=m.position"/>
+                                    </gmap-map>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout v-else row wrap>
                                 <v-flex xs12 sm12 md12 lg12 xl12>
-                                    <v-layout row wrap>
-                                        <v-flex xs12 sm12 md12 lg12 xl12>
-                                            <feedback-map></feedback-map>
-                                        </v-flex>
-                                    </v-layout>
+                                    <v-text-field
+                                        ref="addressField"
+                                        v-model="place"
+                                        :rules="[rules.address, rules.required]"
+                                        label="Address"
+                                        :class="{'disable-events': isViewMode, textField }"
+                                        hint="Type the address and then hit enter"
+                                        persistent-hint
+                                        prepend-icon="pin_drop"/>
+                                </v-flex>
+                                <v-flex xs12 class="mx-2 my-2">
+                                    <gmap-map :center="center" :zoom="18" :options="mapOptions" style="height: 230px;">
+                                        <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="true"
+                                                     :draggable="false" @click="center=m.position" @dragend="drag"/>
+                                    </gmap-map>
                                 </v-flex>
                             </v-layout>
                         </v-flex>
-                        <v-flex xs12 sm12 md12 lg12 xl12 style="margin-top: 10px;">
-                            <v-layout wrap>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-text-field v-model="feedbackObject.latitude" class="header-text-field-input"
-                                                  label="Latitude" placeholder="-" disabled style="padding: 5px;"
-                                                  prepend-icon=""></v-text-field>
-                                </v-flex>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-text-field v-model="feedbackObject.longitude" class="header-text-field-input"
-                                                  label="Longitude" placeholder="-" disabled style="padding: 5px;"
-                                                  prepend-icon=""></v-text-field>
-                                </v-flex>
-                                <v-flex xs12 sm12 md12 lg12 xl12 v-if="feedbackObject.feedback_image">
-                                    <v-img :src="getImagePath(feedbackObject.feedback_image)" style="padding: 10px; margin-bottom: 15px;"></v-img>
-                                </v-flex>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-text-field v-model="feedbackObject.source" class="header-text-field-input"
-                                                  label="Source" placeholder="source" style="padding: 5px;"
-                                                  :rules="[rules.required]" prepend-icon="" @change="validateForm()">
-                                    </v-text-field>
-                                </v-flex>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-select :items="feedbackStatuses" v-model="feedbackObject.feedback_status"
-                                              label="Status" style="padding: 5px;" :rules="[rules.required]"
-                                              @change="validateForm()">
-                                    </v-select>
-                                </v-flex>
-                                <v-flex xs12 sm12 md3 lg3 xl3>
-                                    <v-menu v-model="dateMenu" :close-on-content-click="false" :nudge-right="40" lazy
-                                            transition="scale-transition" offset-y full-width min-width="290px">
-                                        <template v-slot:activator="{ on }">
-                                            <v-text-field v-model="feedbackObject.date" label="Date of incident"
-                                                          prepend-icon="event" readonly v-on="on" style="padding: 5px;"
-                                                          :rules="[rules.required]" @change="validateForm()">
-                                            </v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="feedbackObject.date"
-                                                       @input="dateMenu = false"></v-date-picker>
-                                    </v-menu>
-                                </v-flex>
-                                <v-flex xs12 sm12 md3 lg3 xl3>
-                                    <v-menu ref="timeMenu" v-model="timeMenu" :close-on-content-click="false"
-                                            :nudge-right="40" :return-value.sync="feedbackObject.time" lazy
-                                            transition="scale-transition" offset-y full-width max-width="290px"
-                                            min-width="290px">
-                                        <template v-slot:activator="{ on }">
-                                            <v-text-field v-model="feedbackObject.time" label="Time of incident"
-                                                          prepend-icon="access_time" readonly v-on="on"
-                                                          style="padding: 5px;" :rules="[rules.required]"
-                                                          @change="validateForm()">
-                                            </v-text-field>
-                                        </template>
-                                        <v-time-picker v-if="timeMenu" v-model="feedbackObject.time" format="24hr"
-                                                       full-width
-                                                       @click:minute="$refs.timeMenu.save(feedbackObject.time)">
-                                        </v-time-picker>
-                                    </v-menu>
-                                </v-flex>
-                                <v-flex xs12 sm12 md3 lg3 xl3>
-                                    <v-select :items="childStatuses" v-model="feedbackObject.child_status"
-                                              label="Child status" style="padding: 5px;">
-                                    </v-select>
-                                </v-flex>
-                                <v-flex xs12 sm12 md3 lg3 xl3>
-                                    <v-select :items="transportationChoices" v-model="feedbackObject.transportation"
-                                              label="Transportation" style="padding: 5px;">
-                                    </v-select>
-                                </v-flex>
-                                <v-flex xs12 sm12 md12 lg12 xl12>
-                                    <v-textarea name="input-7-1" v-model="feedbackObject.comment" box label="Comment"
-                                                placeholder="Describe the situation please..." auto-grow>
-                                    </v-textarea>
-                                </v-flex>
-                            </v-layout>
+                        <v-flex xs12 sm12 md6>
+                            <v-text-field v-model="feedbackObject.latitude" class="header-text-field-input px-2 py-2"
+                                          label="Latitude" placeholder="-" disabled prepend-icon="my_location"/>
+                        </v-flex>
+                        <v-flex xs12 sm12 md6>
+                            <v-text-field v-model="feedbackObject.longitude" class="header-text-field-input px-2 py-2"
+                                          label="Longitude" placeholder="-" disabled prepend-icon="my_location"/>
+                        </v-flex>
+                        <v-flex v-if="feedbackObject.feedback_image" xs12 class="mb-2">
+                            <v-img :src="feedbackObject.feedback_image" height="250px"/>
+                        </v-flex>
+                        <v-flex xs12 sm12 md6>
+                            <v-text-field v-model="feedbackObject.source" :class="{'disable-events': isViewMode}" class="px-2 py-2"
+                                          :rules="[rules.required]" label="Source" placeholder="Source" prepend-icon="person" @change="validateForm()"/>
+                        </v-flex>
+                        <v-flex xs12 sm12 md6>
+                            <v-select :items="feedbackStatuses" v-model="feedbackObject.feedback_status" :class="{'disable-events': isViewMode}" class="px-2 py-2"
+                                      :rules="[rules.required]" label="Status" @change="validateForm()"/>
+                        </v-flex>
+                        <v-flex xs12 sm12 md6>
+                            <date-time-picker v-model="feedbackObject.date" label="Date and time of incident" prepend-icon="access_time"
+                                              :class="{'disable-events': isViewMode}" class="px-2 py-0" :rules="[rules.required]" @input="validateForm()"></date-time-picker>
+                        </v-flex>
+                        <v-flex xs12 sm12 md3>
+                            <v-select :items="childStatuses" v-model="feedbackObject.child_status" :class="{'disable-events': isViewMode}" class="px-2 py-2" label="Child status"/>
+                        </v-flex>
+                        <v-flex xs12 sm12 md3>
+                            <v-select :items="transportationChoices" v-model="feedbackObject.transportation" :class="{'disable-events': isViewMode}" class="px-2 py-2" label="Transportation"/>
+                        </v-flex>
+                        <v-flex xs12>
+                            <v-textarea v-model="feedbackObject.comment" name="input-7-1" box label="Comment"
+                                        rows="3" :class="{'disable-events': isViewMode}" class="mx-1"
+                                        placeholder="Describe the situation please..." auto-grow/>
                         </v-flex>
                     </v-layout>
                 </v-form>
             </v-card-text>
-            <v-card-actions>
-                <v-spacer></v-spacer>
+            <v-divider></v-divider>
+            <v-card-actions class="my-0">
+                <v-spacer/>
                 <v-btn color="blue darken-1" flat @click="cancel()">Close</v-btn>
-                <v-btn color="blue darken-1" :disabled="!isFormValid" flat @click="save()">Save</v-btn>
+                <v-btn v-if="!isViewMode" :disabled="!isFormValid" color="blue darken-1" flat @click="save()">Save</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -121,120 +112,208 @@
 
 <script>
 import { bus } from '../main';
-import FeedbackMap from './FeedbackMap';
-
-import { mapGetters, mapMutations, mapActions } from 'vuex';
-import * as R from 'ramda';
+import { UsersApi, FeedbacksApi, PlacesApi } from '@/api';
+import { DateTimePicker } from '@/components';
+import { SET_SNACKBAR_STATUS } from '@/store/mutation-types';
 
 export default {
     components: {
-        'feedback-map': FeedbackMap,
+        DateTimePicker,
     },
     props: {
-        caseId: null,
-        fullName: null,
+        caseId: { type: [String, Number], default: null },
+        fullName: { type: String, default: null },
     },
     data() {
         return {
-            baseUrl: process.env.VUE_APP_BACKEND,
+            center: {
+                lat: 45.508,
+                lng: -73.587,
+            },
+            markers: [],
+            places: [],
+            currentPlace: null,
+            autocomplete: null,
+            mapOptions: {
+                disableDefaultUI: true,
+            },
+            isViewMode: false,
+            isEditMode: false,
+            feedbackObject: {},
             isFormValid: false,
-            dateMenu: false,
-            timeMenu: false,
             place: null,
             dialogFeedback: false,
             rules: {
                 required: value => !!value || 'Field is required',
+                address: value => (value && value.length > 5 && value.length < 250) || 'Address must be between 5 and 50 characters',
             },
             feedbackStatuses: [
-                'pending', 'relevant', 'irrelevant', 'credible',
+                {
+                    text: 'Pending',
+                    value: 'pending',
+                },
+                {
+                    text: 'Relevant',
+                    value: 'relevant',
+                },
+                {
+                    text: 'Irrelevant',
+                    value: 'irrelevant',
+                },
+                {
+                    text: 'Credible',
+                    value: 'credible',
+                },
             ],
             childStatuses: [
-                'ok', 'dead', 'initial', 'wounded'
+                {
+                    text: 'OK',
+                    value: 'ok',
+                },
+                {
+                    text: 'Appearance change (clothes, haircut, etc)',
+                    value: 'appearance_change',
+                },
+                {
+                    text: 'Terrified/Shocked',
+                    value: 'shocked',
+                },
+                {
+                    text: 'Injured/Sick/Intoxicated',
+                    value: 'injured_sick',
+                },
+                {
+                    text: 'Deceased',
+                    value: 'deceased',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
             ],
-            transportationChoices: ['foot', 'bus', 'car', 'train', 'other']
+            transportationChoices: [
+                {
+                    text: 'Foot',
+                    value: 'foot',
+                },
+                {
+                    text: 'Bus/Tram',
+                    value: 'bus_tram',
+                },
+                {
+                    text: 'Car/Motorcycle',
+                    value: 'car_motorcycle',
+                },
+                {
+                    text: 'Train',
+                    value: 'train',
+                },
+                {
+                    text: 'Metro/Subway',
+                    value: 'metro_subway',
+                },
+                {
+                    text: 'Bicycle/Scooter',
+                    value: 'bicycle_scooter',
+                },
+                {
+                    text: 'Ship/Aeroplane',
+                    value: 'ship_aeroplane',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
         };
     },
-    computed: {
-        ...mapGetters('feedback_module', {
-            getFeedback: 'getFeedback',
-            getFeedbackStructure: 'getFeedbackStructure',
-        }),
-        feedbackObject: {
-            get() {
-                if (this.getFeedback === null) {
-                    return R.clone(this.getFeedbackStructure);
-                } else {
-                    return R.clone(this.getFeedback);
-                }
-            },
-            set(value) {
-                this.updateFeedbackMutation(value);
-            },
-        },
-    },
-    mounted() {
-        bus.$emit('enable-feedback-geolocation-event');
-    },
     created() {
-        bus.$off('update-feedback-coords-event');
-        bus.$on('update-feedback-coords-event', () => {
-            this.feedbackObject.latitude = this.getFeedback.latitude;
-            this.feedbackObject.longitude = this.getFeedback.longitude;
-        });
-
-        bus.$off('update-feedback-location-event');
-        bus.$on('update-feedback-location-event', () => {
-            this.feedbackObject.address = this.getFeedback.address;
-            this.feedbackObject.latitude = this.getFeedback.latitude;
-            this.feedbackObject.longitude = this.getFeedback.longitude;
-        });
-
-        bus.$off('edit-feedback-dialog-event');
-        bus.$on('edit-feedback-dialog-event', (feedback) => {
+        this.getUserName();
+        bus.$off('view-feedback-dialog-event');
+        bus.$on('view-feedback-dialog-event', (feedbackObject) => {
+            if (this.caseId === null) {
+                this.caseId = feedbackObject.case;
+                this.fullName = feedbackObject.fullname;
+            }
             this.isFormValid = true;
-            this.feedbackObject = feedback;
+            this.feedbackObject = feedbackObject;
+            this.isViewMode = true;
             this.place = this.feedbackObject.address;
-            bus.$emit('feedback-load-auto-complete-event', {
-                latitude: this.feedbackObject.latitude,
-                longitude: this.feedbackObject.longitude
-            });
+            this.loadSearchField(this.feedbackObject.latitude, this.feedbackObject.longitude);
+            this.dialogFeedback = true;
+        });
+        bus.$off('edit-feedback-dialog-event');
+        bus.$on('edit-feedback-dialog-event', (feedbackObject) => {
+            this.isFormValid = true;
+            this.feedbackObject = feedbackObject;
+            this.isEditMode = true;
+            this.place = this.feedbackObject.address;
+            this.loadSearchField(this.feedbackObject.latitude, this.feedbackObject.longitude);
             this.dialogFeedback = true;
         });
     },
     methods: {
-        ...mapMutations('generic_module', {
-            showSnackbarMutation: 'showSnackbarMutation',
-            hideSnackbarMutation: 'hideSnackbarMutation',
-            showLoaderMutation: 'showLoaderMutation',
-            hideLoaderMutation: 'hideLoaderMutation',
-        }),
-        ...mapMutations('feedback_module', {
-            clearFeedbackMutation: 'clearFeedbackMutation',
-            updateFeedbackMutation: 'updateFeedbackMutation',
-            addToFeedbacksMutation: 'addToFeedbacksMutation',
-            replaceToFeedbacksMutation: 'replaceToFeedbacksMutation',
-        }),
-        ...mapActions('feedback_module', {
-            createFeedbackAction: 'createFeedbackAction',
-            updateFeedbackAction: 'updateFeedbackAction',
-        }),
-
-        validateForm() {
-            this.isFormValid = !!(this.feedbackObject.address && this.feedbackObject.latitude && this.feedbackObject.longitude
-                && this.feedbackObject.source && this.feedbackObject.feedback_status && this.feedbackObject.date
-                && this.feedbackObject.time);
+        async getUserName() {
+            const { data: userObject } = await UsersApi.get();
+            this.feedbackObject.source = `${userObject.last_name} ${userObject.first_name}`;
         },
-        getImagePath(path) {
-            if (this.baseUrl && this.baseUrl.length > 1) {
-                return this.baseUrl + path;
+        goToCase() {
+            if (this.$store.state.role === 'facility_manager') {
+                this.$router.push({
+                    name: 'manage_facility_child',
+                    params: { id: this.caseId },
+                });
             } else {
-                return path;
+                this.$router.push({ name: 'info', params: { id: this.caseId } });
             }
         },
-        triggerPlaceChangeEvent(place) {
-            this.place = place.formatted_address;
-            bus.$emit('feedback-auto-complete-event', place);
-            this.validateForm();
+        setPlace(place) {
+            this.markers = [];
+            this.currentPlace = place;
+            this.feedbackObject.address = this.currentPlace.formatted_address;
+            this.feedbackObject.latitude = this.currentPlace.geometry.location.lat();
+            this.feedbackObject.longitude = this.currentPlace.geometry.location.lng();
+            this.addMarker();
+        },
+        addMarker() {
+            if (this.currentPlace) {
+                const marker = {
+                    lat: this.currentPlace.geometry.location.lat(),
+                    lng: this.currentPlace.geometry.location.lng(),
+                };
+                this.markers.push({ position: marker });
+                this.places.push(this.currentPlace);
+                this.center = marker;
+                this.currentPlace = null;
+            }
+        },
+        loadSearchField(latitude, longitude) {
+            this.markers = [];
+            const marker = {
+                lat: latitude,
+                lng: longitude,
+            };
+            this.markers.push({ position: marker });
+            this.center = marker;
+            this.currentPlace = null;
+        },
+        validateForm() {
+            this.isFormValid = !!(this.feedbackObject.address && this.feedbackObject.latitude && this.feedbackObject.longitude
+                && this.feedbackObject.source && this.feedbackObject.feedback_status && this.feedbackObject.date) || this.isViewMode;
+        },
+        triggerPlaceChangeEvent(address) {
+            if (address && address != null && address.length > 5) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address }, (results, status) => {
+                    if (status !== 'OK' || !results[0]) {
+                        this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Invalid address', color: 'error' });
+                    }
+                    results[0].formatted_address = address;
+                    this.place = results[0].formatted_address;
+                    this.setPlace(results[0]);
+                    this.validateForm();
+                });
+            }
         },
         save() {
             this.dialogFeedback = false;
@@ -246,159 +325,35 @@ export default {
             }
         },
         cancel() {
-            this.dialogFeedback = false;
             this.clearForm();
         },
         clearForm() {
-            this.clearFeedbackMutation();
+            this.dialogFeedback = false;
+            this.isEditMode = false;
+            this.isViewMode = false;
+            this.feedbackObject = {};
             this.isFormValid = false;
             this.place = null;
-            bus.$emit('feedback-clear-auto-complete-event');
             this.$refs.form.reset();
         },
-        createFeedback() {
-            this.showLoaderMutation();
-            this.createFeedbackAction({ feedbackObject: this.feedbackObject })
-                .then((response) => {
-                    if (response.status === 201) {
-                        this.hideLoaderMutation();
-                        this.clearForm();
-                        this.addToFeedbacksMutation(response.data);
-                        bus.$emit('reload-feedbacks-event');
-                    } else {
-                        this.hideLoaderMutation();
-                    }
-                })
-                .catch((error) => {
-                    this.hideLoaderMutation();
-                    if (error.response) {
-                        this.showSnackbarMutation({ message: error.response, status: 'error' });
-                    } else {
-                        this.showSnackbarMutation({ message: "Network error", status: 'error' });
-                    }
-                    this.clearForm();
-                    setTimeout(() => {
-                        this.hideSnackbarMutation();
-                    }, 3000);
-                });
+        async createFeedback() {
+            await FeedbacksApi.create(this.feedbackObject);
+            this.clearForm();
+            bus.$emit('reload-feedbacks-event');
+            this.$router.push({ name: 'feedbacks' });
         },
-        updateFeedback() {
-            this.showLoaderMutation();
-            this.updateFeedbackAction({ feedbackObject: this.feedbackObject })
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.hideLoaderMutation();
-                        this.clearForm();
-                        this.replaceToFeedbacksMutation(response.data);
-                        bus.$emit('reload-feedbacks-event');
-                    } else {
-                        this.hideLoaderMutation();
-                    }
-                })
-                .catch((error) => {
-                    this.hideLoaderMutation();
-                    if (error.response) {
-                        this.showSnackbarMutation({ message: error.response, status: 'error' });
-                    } else {
-                        this.showSnackbarMutation({ message: "Network error", status: 'error' });
-                    }
-                    this.clearForm();
-                    setTimeout(() => {
-                        this.hideSnackbarMutation();
-                    }, 3000);
-                });
-        }
-    }
+        async updateFeedback() {
+            const { data: feedbackObject } = await FeedbacksApi.edit(this.feedbackObject);
+            const { data: places } = await PlacesApi.all({ caseId: this.caseId });
+            const placeExists = places.filter(place => feedbackObject.id === place.feedback).length > 0;
+            if (!placeExists && (feedbackObject.feedback_status === 'credible' || feedbackObject.feedback_status === 'relevant')) {
+                const placeObject = { feedback: feedbackObject.id, case: feedbackObject.case, description: feedbackObject.comment, latitude: feedbackObject.latitude, longitude: feedbackObject.longitude, address: feedbackObject.address, tag: 'fact', source: 'facts' };
+                const { data: newPlace } = await PlacesApi.create(placeObject);
+            }
+            this.clearForm();
+            bus.$emit('reload-feedbacks-event');
+            this.$router.push({ name: 'feedbacks' });
+        },
+    },
 };
 </script>
-
-<style scoped>
-    .customInputField {
-        font-size: 14px;
-        width: 100%;
-        height: 40px;
-    }
-
-    .glowing-border {
-        border: 2px solid #F4B350;
-        border-radius: 7px;
-    }
-
-    .glowing-border:focus {
-        outline: none;
-        border-color: #F4B350;
-        box-shadow: 0 0 2px #F4B350;
-    }
-
-    input {
-        font-size: 14px;
-        padding: 5px 5px 5px 5px;
-        display: block;
-        width: 300px;
-        border: none;
-        border-bottom: 1px solid #757575;
-    }
-
-    input:focus {
-        outline: none;
-    }
-
-    label {
-        color: #000000;
-        font-size: 14px;
-        font-weight: normal;
-        position: absolute;
-        pointer-events: none;
-        left: 5px;
-        top: -20px;
-        transition: 0.2s ease all;
-        -moz-transition: 0.2s ease all;
-        -webkit-transition: 0.2s ease all;
-    }
-
-    input:focus ~ label {
-        top: -20px;
-        font-size: 14px;
-        color: #00ACC1;
-    }
-
-    input:focus ~ .bar:before, input:focus ~ .bar:after {
-        width: 50%;
-    }
-
-    input:focus ~ .highlight {
-        -webkit-animation: inputHighlighter 0.3s ease;
-        -moz-animation: inputHighlighter 0.3s ease;
-        animation: inputHighlighter 0.3s ease;
-    }
-
-    @-webkit-keyframes inputHighlighter {
-        from {
-            background: #F4B350;
-        }
-        to {
-            width: 0;
-            background: transparent;
-        }
-    }
-
-    @-moz-keyframes inputHighlighter {
-        from {
-            background: #F4B350;
-        }
-        to {
-            width: 0;
-            background: transparent;
-        }
-    }
-
-    @keyframes inputHighlighter {
-        from {
-            background: #F4B350;
-        }
-        to {
-            width: 0;
-            background: transparent;
-        }
-    }
-</style>

@@ -1,195 +1,147 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div style="padding: 10px;">
+    <div v-if="isLoaded">
         <v-breadcrumbs :items="linkItems">
             <template v-slot:divider>
                 <v-icon>chevron_right</v-icon>
             </template>
         </v-breadcrumbs>
-        <v-layout wrap>
-            <v-spacer></v-spacer>
-            <v-btn dark color="#D91E18">
-                <v-icon dark>add</v-icon>
-                Amber alert
-            </v-btn>
-            <v-btn dark color="#666666">
-                <v-icon dark>add</v-icon>
-                Missing child
-            </v-btn>
-        </v-layout>
-        <v-layout>
-            <v-flex xs12 sm12 md12 lg12 xl12>
-                <div style="font-size: large; margin: 10px;">Public alerts (4)</div>
-                <v-data-table
-                    :headers="headers"
-                    :items="alerts"
-                    :search="search"
-                >
-                    <template v-slot:items="props">
-                        <td>
-                            <v-avatar
-                                :tile=true
-                                :size="64"
-                                color="grey lighten-4"
-                                style="margin: 5px;"
-                            >
-                                <img :src="props.item.icon" alt="avatar">
-                            </v-avatar>
+        <v-card>
+            <v-data-table :headers="headers" :items="alerts" :search="search" :pagination.sync="pagination">
+                <template v-slot:items="props">
+                    <tr @click="openAlert(props.item)">
+                        <td class="text-xs-left">{{ props.item.start | formatDateTime }}</td>
+                        <td class="text-xs-left">{{ props.item.end | formatDateTime }} {{ props.item.end_time }}</td>
+                        <td class="text-xs-left">{{ props.item.fullname }}</td>
+                        <td class="text-xs-left">{{ props.item.address }}</td>
+                        <td class="text-xs-left">{{ props.item.radius }} km</td>
+                        <td class="text-xs-left">{{ props.item.description | truncate(125, '...') }}</td>
+                        <td class="text-xs-center">
+                            <v-icon v-if="props.item.is_active" color="green">wifi_tethering</v-icon>
+                            <v-icon v-else color="red">portable_wifi_off</v-icon>
                         </td>
-                        <td>
-                            <span style="color: #3B5998;">{{ props.item.name }}</span></td>
-                        <td class="text-xs-left">{{ props.item.type }}</td>
-                        <td class="text-xs-left">{{ props.item.duration }}</td>
-                        <td class="text-xs-left">{{ props.item.radius }}</td>
-                        <td class="text-xs-left">{{ props.item.location }}</td>
-                    </template>
-                    <v-alert v-slot:no-results :value="true" color="error" icon="warning">
-                        Your search for "{{ search }}" found no results.
-                    </v-alert>
-                </v-data-table>
-            </v-flex>
-        </v-layout>
+                        <!-- <td class="justify-center layout px-0">
+                            <v-icon
+                                small
+                                class="mr-2"
+                                @click.stop="openAlert(props.item)"
+                            >visibility</v-icon>
+                            <v-icon v-if="props.item.is_active"
+                                    small
+                                    class="mr-2"
+                                    @click.stop="openEditAlert(props.item)"
+                            >edit</v-icon>
+                        </td> -->
+                    </tr>
+                </template>
+                <v-alert v-slot:no-results :value="true" color="error" icon="warning">
+                    Your search for "{{ search }}" found no results.
+                </v-alert>
+            </v-data-table>
+        </v-card>
     </div>
 </template>
 
 <script>
+import { bus } from '../main';
+import { dates, filters } from '@/utils/mixins';
+import { AlertsApi } from '@/api';
+
 export default {
+    components: {},
+    mixins: [dates, filters],
     data() {
         return {
+            caseId: null,
+            isLoaded: false,
+            alerts: [],
+            search: '',
+            pagination: { sortBy: 'start', descending: true, rowsPerPage: 10 },
+            headers: [
+                {
+                    text: 'START',
+                    value: 'start',
+                    width: '10%',
+                },
+                {
+                    text: 'END',
+                    value: 'end',
+                    width: '10%',
+                },
+                {
+                    text: 'CHILD',
+                    value: 'fullname',
+                    sortable: false,
+                    width: '15%',
+                },
+                {
+                    text: 'ADDRESS',
+                    value: 'adress',
+                    sortable: false,
+                    width: '15%',
+                },
+                {
+                    text: 'RADIUS',
+                    value: 'radius',
+                    sortable: false,
+                    width: '5%',
+                },
+                {
+                    text: 'DESCRIPTION',
+                    value: 'description',
+                    sortable: false,
+                    width: '25%',
+                },
+                {
+                    text: 'ACTIVE',
+                    value: 'isActive',
+                    align: 'center',
+                    sortable: false,
+                    width: '5%',
+                },
+                // {
+                //     align: 'center',
+                //     sortable: false,
+                //     text: 'Actions',
+                //     value: 'name',
+                //     width: '5%',
+                // },
+            ],
             linkItems: [
                 {
                     text: 'Home',
                     disabled: false,
-                    href: '/dashboard',
+                    href: '/',
                 },
                 {
                     text: 'Alerts',
                     disabled: true,
-                    href: '/alerts',
+                    href: '/',
                 },
             ],
-            search: '',
-            headers: [
-                {
-                    text: '',
-                    sortable: false,
-                    value: 'icon'
-                },
-                {
-                    text: 'NAME',
-                    value: 'name'
-                },
-                {
-                    text: 'TYPE',
-                    value: 'type'
-                },
-                {
-                    text: 'DURATION',
-                    value: 'duration'
-                },
-                {
-                    text: 'RADIUS',
-                    value: 'radius'
-                },
-                {
-                    text: 'LOCATION',
-                    value: 'location'
-                }
-            ],
-            alerts: [
-                {
-                    icon: 'https://vuetifyjs.com/apple-touch-icon-180x180.png',
-                    name: 'Child 1',
-                    type: 'AMBER ALERT',
-                    duration: '1 day',
-                    radius: '5km',
-                    location: 'Athens, Greece',
-                },
-                {
-                    icon: 'https://vuetifyjs.com/apple-touch-icon-180x180.png',
-                    name: 'Child 1',
-                    type: 'AMBER ALERT',
-                    duration: '1 day',
-                    radius: '5km',
-                    location: 'Athens, Greece',
-                },
-                {
-                    icon: 'https://vuetifyjs.com/apple-touch-icon-180x180.png',
-                    name: 'Child 1',
-                    type: 'AMBER ALERT',
-                    duration: '1 day',
-                    radius: '5km',
-                    location: 'Athens, Greece',
-                },
-                {
-                    icon: 'https://vuetifyjs.com/apple-touch-icon-180x180.png',
-                    name: 'Child 1',
-                    type: 'AMBER ALERT',
-                    duration: '1 day',
-                    radius: '5km',
-                    location: 'Athens, Greece',
-                },
-            ]
         };
     },
+    created() {
+        this.caseId = this.$route.params.id;
+        this.loadAlerts();
+        bus.$off('reload-alerts-event');
+        bus.$on('reload-alerts-event', () => {
+            this.loadAlerts();
+        });
+    },
     methods: {
-        loadCase(caseObject) {
-            this.$router.push({
-                name: 'case',
-                params: { caseObjectProp: caseObject }
-            });
+        async loadAlerts() {
+            const { data: alerts } = await AlertsApi.all({ caseId: this.caseId });
+            this.alerts = alerts;
+            this.isLoaded = true;
         },
-        getUserType(user) {
-            return user !== 'Anonymous' && user !== 'Police';
-        }
-    }
+        openAlert(item) {
+            bus.$emit('view-alert-dialog-event', item);
+        },
+        openEditAlert(item) {
+            if (item.is_active) {
+                bus.$emit('edit-alert-dialog-event', item);
+            }
+        },
+    },
 };
 </script>
-
-<style scoped>
-    .blueName {
-        color: #3B5998
-    }
-
-    .tile_background {
-        height: 165px;
-        background-color: #C3C3C3;
-        background-image: url("../assets/logo.png");
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-    }
-
-    .tile_background_tags {
-        position: relative;
-        top: calc(100% - 30px);
-        padding: 5px;
-    }
-
-    .tile_background_tag_left {
-        color: #ffffff;
-        font-weight: bold;
-        text-align: left;
-    }
-
-    .tile_background_tag_right {
-        color: #ffffff;
-        font-weight: bold;
-        text-align: right;
-    }
-
-    .hasColor {
-        color: cornflowerblue;
-    }
-
-    .clickable_card {
-        overflow: hidden;
-    }
-
-    .clickable_card:hover .tile_background {
-        transform: scale(1.02);
-    }
-
-    .clickable_card:hover {
-        cursor: pointer;
-    }
-</style>

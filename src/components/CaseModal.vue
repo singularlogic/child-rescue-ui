@@ -1,5 +1,5 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-dialog v-model="dialogCaseModal" persistent max-width="900px">
+    <v-dialog v-model="dialogCaseModal" persistent max-width="900px" @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
             <v-btn dark color="#F4B350" v-on="on">
                 <v-icon dark>add</v-icon>
@@ -36,8 +36,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex';
-import { bus } from '../main';
+import { mapGetters } from 'vuex';
 
 export default {
     components: {},
@@ -48,23 +47,9 @@ export default {
         };
     },
     computed: {
-        ...mapMutations('generic_module', {
-            showSnackbarMutation: 'showSnackbarMutation',
-            hideSnackbarMutation: 'hideSnackbarMutation',
-            showLoaderMutation: 'showLoaderMutation',
-            hideLoaderMutation: 'hideLoaderMutation',
-        }),
         ...mapGetters('case_module', {
             getCases: 'getCases',
         }),
     },
-    mounted() {
-    },
-    created() {
-    },
-    methods: {}
 };
 </script>
-
-<style scoped>
-</style>

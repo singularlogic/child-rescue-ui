@@ -1,19 +1,10 @@
-# Extensions
-*.pyc
-*.pyo
-*.py~
-*.txt~
-.gitignore~
-
-### Django
-Backend/media
-
-### Vue JS ###
 .DS_Store
 node_modules
+/dist
 
 # local env files
-#.env
+.env.local
+.env.*.local
 
 # Log files
 npm-debug.log*
@@ -27,10 +18,4 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw*
-
-# nuxt
-.nuxt/
-
-# dist
-dist/
+*.sw?

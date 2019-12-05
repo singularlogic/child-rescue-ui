@@ -1,5 +1,13 @@
 export default {
     filters: {
+        truncate(text, length, sign) {
+            if (text != null) {
+                sign = sign || '...';
+                const a = text.length > length ? text.slice(0, length) + sign : text;
+                return a;
+            }
+            return null;
+        },
         formatNumber(value) {
             return numeral(value).format('0,0');
         },

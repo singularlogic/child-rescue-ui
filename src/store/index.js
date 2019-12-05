@@ -1,36 +1,69 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-// import VuexPersist from 'vuex-persist';
-import user_module from './modules/user_module/index';
-import generic_module from './modules/generic_module/index';
-import case_module from './modules/case_module/index';
-import alert_module from './modules/alert_module/index';
-import feedback_module from './modules/feedback_module/index';
-// import createLogger from '../../../src/plugins/logger'
+import VuexPersistence from 'vuex-persist';
+import { UserStore, FacilityStore, CaseStore, AlertStore, FeedbackStore } from './modules';
+
+const vuexLocal = new VuexPersistence({
+    storage: window.localStorage,
+    key: 'child_resque',
+    reducer: state => ({
+        token: state.token,
+        signedIn: state.signedIn,
+        role: state.role,
+        organizationId: state.organizationId,
+        facilityId: state.facilityId,
+    }),
+});
 
 Vue.use(Vuex);
 
-const debug = process.env.NODE_ENV !== 'production';
-// const vuexPersist = new VuexPersist({
-//     key: 'my-app',
-//     storage: localStorage,
-// });
-
-export default new Vuex.Store({
+const store = new Vuex.Store({
     state: {
+        token: null,
+        signedIn: false,
+        snackbarMessage: '',
+        snackbarColor: '',
+        loading: false,
+        role: '',
+        organizationId: '',
+        facilityId: '',
     },
     mutations: {
+        clearToken: (state) => {
+            state.signedIn = false;
+            state.token = null;
+            state.role = null;
+            state.organizationId = null;
+        },
+        setToken: (state, { loginResponse }) => {
+            state.token = loginResponse.access_token;
+            state.signedIn = true;
+        },
+        setRole: (state, { response }) => {
+            state.role = response.role;
+        },
+        setOrganization: (state, { response }) => {
+            state.organizationId = response.id;
+        },
+        setFacility: (state, { response }) => {
+            state.facilityId = response.facility;
+        },
+        setSnackbarStatus: (state, status) => {
+            state.snackbarMessage = status.message;
+            state.snackbarColor = status.color;
+        },
+        setLoading: (state, isActive) => {
+            state.loading = isActive;
+        },
     },
-    actions: {
+    getters: {
+        isLoading: state => state.loading === true,
     },
+    actions: {},
     modules: {
-        generic_module,
-        user_module,
-        case_module,
-        alert_module,
-        feedback_module,
+        UserStore, FacilityStore, CaseStore, AlertStore, FeedbackStore,
     },
-    strict: debug,
-    // plugins: debug ? [createLogger()] : []
-    // plugins: [vuexPersist.plugin],
+    plugins: [vuexLocal.plugin],
 });
+
+export default store;

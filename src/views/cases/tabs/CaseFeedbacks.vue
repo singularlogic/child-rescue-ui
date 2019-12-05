@@ -1,173 +1,145 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div v-if="isLoaded">
-        <v-card>
-            <v-card-title>
-                <div style="margin-bottom: 0px;"><span
-                    style="font-size: large; font-weight: bold;">INFORMATION ({{ getFeedbacks.length || 0 }})</span>
-                </div>
-                <v-spacer></v-spacer>
-            </v-card-title>
-            <v-data-table :headers="headers" :items="getFeedbacks" :search="search">
-                <template v-slot:items="props">
-                    <tr @click="openEditFeedback(props.item)">
-                        <td>
-                            <span style="color: #3B5998;">{{ props.item.id }}</span></td>
-                        <td class="text-xs-left">{{ props.item.comment }}</td>
-                        <td class="text-xs-left">{{ props.item.address }}</td>
-                        <td class="text-xs-left">{{ props.item.date }} {{ props.item.time }}</td>
-                        <td class="text-xs-left">
-                            <v-img v-if="props.item.feedback_image" :src="getImagePath(props.item.feedback_image)" width="64px"></v-img>
-                        </td>
-                        <td class="text-xs-left">
-                            <span :class="{ blueName: getUserType(props.item.source) }">{{ props.item.source }}</span>
-                        </td>
-                        <td class="text-xs-left">
-                            <span>{{ props.item.checked_by_name }}</span>
-                        </td>
-                        <td class="text-xs-left">
-                            <v-btn v-if="props.item.feedback_status === 'pending'" outline dark color="#3B5998">
-                                Pending
-                            </v-btn>
-                            <span v-if="props.item.feedback_status === 'relevant'" style="color: #28A745;"><b>RELEVANT</b></span>
-                            <span v-if="props.item.feedback_status === 'irrelevant'"
-                                  style="color: #FB6221;"><b>IRRELEVANT</b></span>
-                            <span v-if="props.item.feedback_status === 'credible'" style="color: #28A745;"><b>CREDIBLE</b></span>
-                        </td>
-                    </tr>
-                </template>
-                <v-alert v-slot:no-results :value="true" color="error" icon="warning">
-                    Your search for "{{ search }}" found no results.
-                </v-alert>
-            </v-data-table>
-        </v-card>
-    </div>
+    <v-card v-if="isLoaded" flat>
+        <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" class="text-xs-right" dense flat color="white">
+            <v-spacer></v-spacer>
+            <feedback :case-id="caseObject.id" :full-name="caseObject.personal_data.full_name"></feedback>
+        </v-toolbar>
+        <v-data-table :headers="headers" :items="feedbacks" :pagination.sync="pagination">
+            <template v-slot:items="props">
+                <tr :style="{ 'color': isMainFact(props.item.is_main) }" @click="openFeedback(props.item)">
+                    <td class="text-xs-left">{{ props.item.updated_at | formatDateTime }}</td>
+                    <td class="text-xs-left">{{ props.item.comment | truncate(25, '...') }}</td>
+                    <td class="text-xs-left">{{ props.item.address | truncate(25, '...') }}</td>
+                    <td class="text-xs-left">{{ props.item.date | formatDateTime }}</td>
+                    <td class="text-xs-left"><v-icon v-if="props.item.feedback_image" color="blue">image</v-icon></td>
+                    <td class="text-xs-left"><span>{{ props.item.source | title }}</span></td>
+                    <td class="text-xs-left">
+                        <v-tooltip right>
+                            <span slot="activator" :style="{'color': getRoleColor(props.item.checked_by_role)}">{{ props.item.checked_by_name }}</span>
+                            <span>{{ props.item.checked_by_role | customTitle("_") }}</span>
+                        </v-tooltip>
+                    </td>
+                    <td class="text-xs-left">
+                        <span :style="{ 'color': getFactStatusColor(props.item.feedback_status) }" class="caption">{{ props.item.feedback_status | title }}</span>
+                    </td>
+                    <td><span style="color: #3B5998;">{{ props.item.id }}</span></td>
+                    <td class="justify-center layout px-0">
+                        <v-icon small class="mr-2" @click.stop="openFeedback(props.item)">visibility</v-icon>
+                        <v-icon small class="mr-2" @click.stop="openEditFeedback(props.item)">edit</v-icon>
+                    </td>
+                </tr>
+            </template>
+            <v-alert v-slot:no-results :value="true" color="error" icon="warning">No facts!</v-alert>
+        </v-data-table>
+    </v-card>
 </template>
 
 <script>
 import { bus } from '../../../main';
-import { mapGetters, mapMutations, mapActions } from 'vuex';
-import { dates } from '@/utils/mixins';
+import { dates, filters, fonts } from '@/utils/mixins';
+import Feedback from '@/components/Feedback.vue';
+import { CasesApi, FeedbacksApi } from '@/api';
 
 export default {
-    components: {},
-    props: {
-        caseId: null,
+    components: {
+        feedback: Feedback,
     },
-    mixins: [dates],
+    mixins: [dates, filters, fonts],
     data() {
         return {
-            baseUrl: process.env.VUE_APP_BACKEND,
+            caseId: null,
+            caseObject: {},
             isLoaded: false,
-            search: '',
+            feedbacks: [],
+            pagination: { sortBy: 'updated_at', descending: true, rowsPerPage: 10 },
             headers: [
                 {
-                    text: 'ID',
-                    align: 'left',
-                    sortable: false,
-                    value: 'id'
+                    text: 'LAST UPDATE',
+                    value: 'updated_at',
+                    width: '11%',
                 },
                 {
                     text: 'DESCRIPTION',
-                    value: 'comment'
+                    value: 'comment',
+                    width: '15%',
                 },
                 {
                     text: 'ADDRESS',
-                    value: 'address'
+                    value: 'address',
+                    width: '15%',
                 },
                 {
-                    text: 'DATE',
-                    value: 'created_at'
+                    text: 'DATE OF INCIDENT',
+                    value: 'date',
+                    width: '10%',
                 },
                 {
                     text: 'MEDIA',
-                    value: 'feedback_image'
+                    align: 'left',
+                    value: 'feedback_image',
+                    width: '5%',
                 },
                 {
-                    text: 'USER',
-                    value: 'source'
+                    text: 'SOURCE',
+                    value: 'source',
+                    width: '10%',
                 },
                 {
                     text: 'CHECKED BY',
-                    value: 'name'
+                    value: 'name',
+                    width: '10%',
                 },
                 {
                     text: 'STATUS',
                     value: 'feedback_status',
                     align: 'left',
-                }
+                    width: '5%',
+                },
+                {
+                    text: 'ID',
+                    align: 'left',
+                    sortable: false,
+                    value: 'id',
+                    width: '5%',
+                },
+                {
+                    sortable: false,
+                    text: 'Actions',
+                    value: 'name',
+                    width: '5%',
+                },
             ],
         };
     },
-    computed: {
-        ...mapGetters('feedback_module', {
-            getFeedbacks: 'getFeedbacks',
-        })
-    },
-    created() {
-        if (!this.getFeedbacks || this.getFeedbacks === null) {
-            this.loadFeedbacks();
-        } else {
-            this.isLoaded = true;
-        }
-
+    async created() {
+        this.caseId = this.$route.params.id;
+        await this.loadFeedbacks();
         bus.$off('reload-feedbacks-event');
         bus.$on('reload-feedbacks-event', () => {
             this.loadFeedbacks();
         });
+        const { data: caseObject } = await CasesApi.get(this.caseId);
+        this.caseObject = caseObject;
+        this.isLoaded = true;
     },
     methods: {
-        ...mapMutations('generic_module', {
-            showSnackbarMutation: 'showSnackbarMutation',
-            hideSnackbarMutation: 'hideSnackbarMutation',
-            showLoaderMutation: 'showLoaderMutation',
-            hideLoaderMutation: 'hideLoaderMutation',
-        }),
-        ...mapActions('feedback_module', {
-            getFeedbacksAction: 'getFeedbacksAction'
-        }),
-        getImagePath(path) {
-            if (this.baseUrl && this.baseUrl.length > 1) {
-                return this.baseUrl + path;
-            } else {
-                return path;
-            }
+        async loadFeedbacks() {
+            const { data: feedbacks } = await FeedbacksApi.all({ caseId: this.caseId });
+            feedbacks.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+            this.feedbacks = feedbacks;
         },
-        getUserType(user) {
-            return user !== 'Anonymous' && user !== 'Police';
-        },
-        loadFeedbacks() {
-            this.showLoaderMutation();
-            this.getFeedbacksAction({ caseId: this.caseId })
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.hideLoaderMutation();
-                        this.isLoaded = true;
-                    } else {
-                        this.hideLoaderMutation();
-                    }
-                })
-                .catch((error) => {
-                    this.hideLoaderMutation();
-                    if (error.response) {
-                        this.showSnackbarMutation({ message: error.response, status: 'error' });
-                    } else {
-                        this.showSnackbarMutation({ message: "Network error", status: 'error' });
-                    }
-                    // this.clearForm();
-                    setTimeout(() => {
-                        this.hideSnackbarMutation();
-                    }, 3000);
-                });
+        openFeedback(item) {
+            bus.$emit('view-feedback-dialog-event', item);
         },
         openEditFeedback(item) {
             bus.$emit('edit-feedback-dialog-event', item);
-        }
-    }
+        },
+    },
 };
 </script>
 
 <style scoped>
-    .blueName {
-        color: #3B5998
+    .aaa {
+        color: red;
     }
 </style>

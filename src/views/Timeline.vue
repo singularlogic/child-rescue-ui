@@ -37,23 +37,23 @@ export default {
         return {
             isLoaded: false,
             logs: [
-                { text: "Evidence #1234 for Tony Montana case" },
-                { text: "New message in Rescue Team #3 for Tony Montana" },
-                { text: "Evidence #1234 for Tony Montana case" },
-                { text: "New message in Rescue Team #3 for Tony Montana" },
-                { text: "Evidence #1234 for Tony Montana case" },
-                { text: "New message in Rescue Team #3 for Tony Montana" },
-                { text: "Evidence #1234 for Tony Montana case" },
-                { text: "New message in Rescue Team #3 for Tony Montana" },
-                { text: "New message in Rescue Team #3 for Tony Montana" },
-            ]
+                { text: 'Evidence #1234 for Tony Montana case' },
+                { text: 'New message in Rescue Team #3 for Tony Montana' },
+                { text: 'Evidence #1234 for Tony Montana case' },
+                { text: 'New message in Rescue Team #3 for Tony Montana' },
+                { text: 'Evidence #1234 for Tony Montana case' },
+                { text: 'New message in Rescue Team #3 for Tony Montana' },
+                { text: 'Evidence #1234 for Tony Montana case' },
+                { text: 'New message in Rescue Team #3 for Tony Montana' },
+                { text: 'New message in Rescue Team #3 for Tony Montana' },
+            ],
         };
     },
     computed: {},
     created() {
         this.isLoaded = true;
     },
-    methods: {}
+    methods: {},
 };
 </script>
 

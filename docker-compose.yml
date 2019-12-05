@@ -1,9 +1,9 @@
 version: '3'
 services:
 
-  cr_admin_production:
-    image: registry.gitlab.com/suite5/childrescueweb:latest
+  childrescue_admin:
+    image: docker.pkg.github.com/suite5/childrescue-frontend/childrescue-frontend:latest
     ports:
       - 8080:8080
     restart: unless-stopped
-    container_name: cr_admin_production
+    container_name: childrescue_admin

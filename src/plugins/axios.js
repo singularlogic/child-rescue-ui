@@ -1,29 +1,40 @@
-import Vue from 'vue';
 import axios from 'axios';
-import VueAxios from 'vue-axios';
-
-Vue.use(VueAxios, axios);
-
-// axios.defaults.baseURL = 'https://cr.app/';
-// axios.defaults.baseURL = 'http://localhost:8000';
-axios.defaults.baseURL = process.env.VUE_APP_BACKEND;
+import store from '@/store';
+import { SET_LOADING, SET_SNACKBAR_STATUS } from '@/store/mutation-types';
 
 
+const baseURL = process.env.VUE_APP_BACKEND;
 
-// if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-//     axios.defaults.baseURL = 'http://localhost:8888/';
-// } else {
-//     axios.defaults.baseURL = 'https://cr.com/';
-// }
+const plain = axios.create({
+    baseURL: `${baseURL}/api/v1`,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-axios.defaults.xsrfCookieName = 'csrftoken';
+const secured = axios.create({
+    baseURL: `${baseURL}/api/v1`,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-export const api = axios.create();
-//     {
-//     withCredentials: true,
-//     headers: {
-//         // 'Accept': 'application/json',
-//         // 'Content-Type': 'application/json'
-//     }
-// });
+secured.interceptors.request.use((config) => {
+    config.headers.Authorization = `Bearer ${store.state.token}`;
+    store.commit(SET_LOADING, true);
+    return config;
+}, (error) => {
+    store.commit(SET_LOADING, false);
+    return Promise.reject(error);
+});
+
+secured.interceptors.response.use((response) => {
+    store.commit(SET_LOADING, false);
+    return response;
+}, (error) => {
+    store.commit(SET_SNACKBAR_STATUS, { message: error.response.data, color: 'error' });
+    store.commit(SET_LOADING, false);
+    return Promise.reject(error);
+});
+
+export { plain, secured };

@@ -1,7 +1,5 @@
 <template>
     <v-content class="main">
-        <v-progress-linear :indeterminate="true" color="secondary" height="3"
-                               :active="getLoader"></v-progress-linear>
         <v-container fluid fill-height>
             <v-layout align-center justify-center>
                 <v-flex xs12 sm8 md8 lg8 xl6>
@@ -16,10 +14,12 @@
                             </v-flex>
                             <v-flex xs12 sm12 md6 lg6 xl6>
                                 <div style="margin: 15%;">
-                                    <h2>Login</h2>
-                                    <v-text-field v-model="email" type="email" label="Email" prepend-icon="email" ref="emailField" :rules="[rules.required]" @keyup="login"></v-text-field>
-                                    <v-text-field id="password" v-model="password" type="password" label="Password" prepend-icon="lock" :rules="[rules.required]" @keyup="login"></v-text-field>
-                                    <v-btn block large color="#FFA500" dark @click="loginUser()">Login</v-btn>
+                                    <v-form ref="loginForm" v-model="valid" lazy-validation>
+                                        <h2>Login</h2>
+                                        <v-text-field v-model="user.email" type="email" label="Email" prepend-icon="email" ref="emailField" :rules="[rules.required, rules.email]" @keyup.enter.native="validate"></v-text-field>
+                                        <v-text-field id="password" v-model="user.password" type="password" label="Password" prepend-icon="lock" :rules="[rules.required, rules.password]" @keyup.enter.native="validate"></v-text-field>
+                                        <v-btn block large color="#FFA500" dark @click="validate()">Login</v-btn>
+                                    </v-form>
                                     <br/>
                                     <a href="">Forgot your password?</a>
                                 </div>
@@ -33,70 +33,64 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex';
+import { UsersApi } from '@/api';
+import { SET_TOKEN, SET_ROLE, SET_SNACKBAR_STATUS, CLEAR_TOKEN } from '@/store/mutation-types';
 
 export default {
     name: 'Login',
     data() {
         return {
-            email: '',
-            password: '',
+            user: {},
+            valid: true,
             rules: {
                 required: value => !!value || 'Field is required',
-                duration: value => value && value > 0 && value < 241 || 'Duration must be between 1 to 240 hours',
-            }
+                email: value => (value && /.+@.+/.test(value)) || 'E-mail must be valid',
+                password: value => (value && value.length >= 6 && value.length <= 20) || 'Password must be between 6 and 20 characters',
+            },
         };
-    },
-    computed: {
-        ...mapGetters('generic_module', {
-            getIsSnackbarShown: 'getIsSnackbarShown',
-            getSnackbarMessage: 'getSnackbarMessage',
-            getLoader: 'getLoader',
-        }),
     },
     mounted() {
         this.$refs.emailField.focus();
     },
     methods: {
-        ...mapMutations('generic_module', {
-            showSnackbarMutation: 'showSnackbarMutation',
-            hideSnackbarMutation: 'hideSnackbarMutation',
-            showLoaderMutation: 'showLoaderMutation',
-            hideLoaderMutation: 'hideLoaderMutation',
-        }),
-        ...mapActions('user_module', {
-            loginUserAction: 'loginUserAction',
-        }),
+        validate() {
+            if (this.$refs.loginForm.validate()) {
+                this.loginUser();
+            }
+        },
+        reset() {
+            this.$refs.loginForm.reset();
+        },
+        async loginUser() {
+            try {
+                const { data: loginResponse } = await UsersApi.login(this.user);
+                this.$store.commit(SET_TOKEN, { loginResponse });
+                const { data: userObject } = await UsersApi.get();
+                this.userObject = userObject;
+                const el = ['organization_manager', 'coordinator', 'case_manager', 'facility_manager', 'network_manager'].includes(this.userObject.role);
+                if (el) {
+                    this.$store.commit(SET_ROLE, { response: userObject });
+                    this.$router.push({ name: 'dashboard' });
+                } else {
+                    this.$store.commit(SET_SNACKBAR_STATUS, { message: `[${this.userObject.role}] user, has no access in the platform!`, color: 'error' });
+                    this.$store.commit(CLEAR_TOKEN);
+                }
+            } catch (e) {
+                console.log(e);
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Invalid email or password', color: 'error' });
+            }
+        },
         login(event) {
-            let instance = this;
+            const instance = this;
             if (event.keyCode === 13) {
                 instance.loginUser();
             }
-        },
-        loginUser() {
-            this.showLoaderMutation();
-            this.loginUserAction({ email: this.email, password: this.password, router: this.$router })
-                .then((response) => {
-                    this.hideLoaderMutation();
-                })
-                .catch((error) => {
-                    this.hideLoaderMutation();
-                    if (error.response.statusText === 'Forbidden') {
-                        this.showSnackbarMutation({ message: "Wrong credentials", status: 'error' });
-                    } else {
-                        this.showSnackbarMutation({ message: "Network error", status: 'error' });
-                    }
-                    setTimeout(() => {
-                        this.hideSnackbarMutation();
-                    }, 3000);
-                });
         },
     },
 };
 </script>
 
 <style>
-
     .v-progress-linear {
         margin: 0 !important;
         position: fixed;

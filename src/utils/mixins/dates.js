@@ -5,18 +5,16 @@ export default {
         formatDateTime(value) {
             if (value !== null) {
                 return moment(String(value))
-                    .format('YYYY-MM-DD hh:mm:ss');
-            } else {
-                return 'unknown'
+                    .format('YYYY-MM-DD HH:mm:ss');
             }
+            return 'unknown';
         },
         formatDateTimeMinutes(value) {
-            if (value !== null) {
+            if (value !== null && value !== '') {
                 return moment(String(value))
-                    .format('YYYY-MM-DD hh:mm');
-            } else {
-                return 'unknown'
+                    .format('YYYY-MM-DD HH:MM');
             }
+            return '-';
         },
         formatDate(value) {
             return moment(String(value)).format('YYYY-MM-DD');
