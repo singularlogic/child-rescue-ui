@@ -1,7 +1,7 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-layout row fill-height>
+    <v-layout v-if="isLoaded" row fill-height>
         <v-flex>
-            <div v-if="isLoaded" style="height: 100%;">
+            <div style="height: 100%;">
                 <v-layout row fill-height wrap style="overflow-y: hidden;">
                     <v-flex xs12 sm12 md12 lg8 xl8>
                         <v-layout row wrap>
@@ -13,7 +13,7 @@
                                                 v-model="showAlerts"
                                                 label="Show alerts"
                                                 class="mt-3"
-                                                @click="renderAlerts()"
+                                                @change="renderAlerts()"
                                             ></v-checkbox>
                                         </v-toolbar-title>
                                         <v-toolbar-title>
@@ -21,7 +21,7 @@
                                                 v-model="showFeedbacks"
                                                 label="Show facts"
                                                 class="mt-3"
-                                                @click="renderFeedbacks()"
+                                                @change="renderFeedbacks()"
                                             ></v-checkbox>
                                         </v-toolbar-title>
                                         <v-toolbar-title>
@@ -29,7 +29,7 @@
                                                 v-model="showPlaces"
                                                 label="Show POI"
                                                 class="mt-3"
-                                                @click="renderPlaces()"
+                                                @change="renderPlaces()"
                                             ></v-checkbox>
                                         </v-toolbar-title>
                                         <v-toolbar-title>
@@ -37,7 +37,7 @@
                                                 v-model="showVolunteers"
                                                 label="Show volunteers"
                                                 class="mt-3"
-                                                @click="renderVolunteers()"
+                                                @change="renderVolunteers()"
                                             ></v-checkbox>
                                         </v-toolbar-title>
                                     </v-toolbar>
@@ -71,7 +71,7 @@
                                                     <v-list-tile-sub-title>{{ infoObject.team_name || ' - ' | title }}</v-list-tile-sub-title>
                                                 </v-list-tile-content>
                                             </v-list-tile>
-                                            <v-list-tile v-if="infoObject.type === 'place'" avatar>
+                                            <v-list-tile v-if="infoObject.type === 'place' || infoObject.type === 'feedback' || infoObject.type === 'initFeedback'" avatar>
                                                 <v-list-tile-avatar >
                                                     <v-img v-if="infoObject.image" :src="getProperImagePath(infoObject.image)"></v-img>
                                                     <v-icon v-else-if="infoObject.feedback" color="primary">feedback</v-icon>
@@ -79,6 +79,8 @@
                                                 </v-list-tile-avatar>
                                                 <v-list-tile-content>
                                                     <v-list-tile-title v-if="infoObject.feedback"><a :href="`/cases/${caseId}/feedbacks`" style="color: blue;">Fact: {{ infoObject.feedback }}</a></v-list-tile-title>
+                                                    <v-list-tile-title v-else><a :href="`/cases/${caseId}/feedbacks`" style="color: blue;">Fact: {{ infoObject.id }}</a></v-list-tile-title>
+                                                    <v-list-tile-sub-title>{{ infoObject.address || " - " | title }}</v-list-tile-sub-title>
                                                     <v-list-tile-sub-title>{{ infoObject.description || " - " | title }}</v-list-tile-sub-title>
                                                 </v-list-tile-content>
                                             </v-list-tile>
@@ -141,7 +143,7 @@
                                     <v-parallax v-else dark style="background-color: #C3C3C3; height:376px;">
                                         <v-layout align-center column justify-center>
                                             <h1 class="display-2 font-weight-thin mb-3">Case volunteers</h1>
-                                            <h4 class="subheading">No volunteers have aceept invites for this case yet...</h4>
+                                            <h4 class="subheading">No volunteers have aceepted invites for this case yet...</h4>
                                         </v-layout>
                                     </v-parallax>
                                 </v-card>
@@ -158,9 +160,8 @@
 </template>
 
 <script>
-import { gmapApi } from 'vue2-google-maps';
 import { dates, filters, fonts } from '@/utils/mixins';
-import { AlertsApi, FeedbacksApi, CasesApi, PlacesApi } from '@/api';
+import { UsersApi, AlertsApi, FeedbacksApi, CasesApi, PlacesApi } from '@/api';
 import Feed from '@/components/Feed.vue';
 
 
@@ -187,6 +188,7 @@ export default {
             feedbackMarkers: [],
             alertMarkers: [],
             volunteerMarkers: [],
+            userObject: {},
             placeMarkers: [],
             place: null,
             places: [],
@@ -208,10 +210,24 @@ export default {
             volunteer_icon: require('../../../assets/volunteer_icon.jpeg'),
         };
     },
-    computed: {
-        google: gmapApi,
+    mounted() {
+        // if (this.userObject.role === 'network_manager') {
+        //     this.showAlerts = false;
+        //     this.showFeedbacks = true;
+        //     this.showPlaces = true;
+        //     this.showVolunteers = true;
+        // } else {
+        //     this.showAlerts = true;
+        //     this.showFeedbacks = true;
+        //     this.showPlaces = true;
+        //     this.showVolunteers = false;
+        // }
+        // this.render();
     },
     async created() {
+        const { data: userObject } = await UsersApi.get();
+        this.userObject = userObject;
+
         this.caseId = this.$route.params.id;
         const { data: caseObject } = await CasesApi.get(this.caseId);
         this.caseObject = caseObject;
@@ -250,7 +266,7 @@ export default {
             this.feedbacks = feedbacks;
         },
         async loadAlerts() {
-            const { data: alerts } = await AlertsApi.all({ caseId: this.caseId });
+            const { data: alerts } = await AlertsApi.all({ caseId: this.caseId, is_active: true });
             this.alerts = alerts;
         },
         geolocate() {
@@ -274,6 +290,12 @@ export default {
                 this.zoom = 18;
             }
         },
+        render() {
+            this.renderVolunteers();
+            this.renderPlaces();
+            this.renderFeedbacks();
+            this.renderAlerts();
+        },
         renderVolunteers() {
             if (this.showVolunteers) {
                 this.volunteers.forEach((volunteer, index) => {
@@ -284,9 +306,11 @@ export default {
                         };
                         const icon = {
                             url: this.volunteer_icon,
-                            scaledSize: new this.google.maps.Size(32, 32),
+                            // eslint-disable-next-line no-undef
+                            scaledSize: new google.maps.Size(32, 32),
                         };
-                        const animation = this.google.maps.Animation.DROP;
+                        // eslint-disable-next-line no-undef
+                        const animation = google.maps.Animation.DROP;
 
                         setTimeout(() => {
                             this.volunteerMarkers.push({
@@ -312,9 +336,11 @@ export default {
                         };
                         const icon = {
                             url: this.poi_icon,
-                            scaledSize: new this.google.maps.Size(32, 32),
+                            // eslint-disable-next-line no-undef
+                            scaledSize: new google.maps.Size(32, 32),
                         };
-                        const animation = this.google.maps.Animation.DROP;
+                        // eslint-disable-next-line no-undef
+                        const animation = google.maps.Animation.DROP;
 
                         setTimeout(() => {
                             this.placeMarkers.push({

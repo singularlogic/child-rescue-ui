@@ -3,7 +3,7 @@ import { secured } from '../plugins/axios';
 const resource = '/facilities/web_admin_api';
 
 export default {
-    all: () => secured.get(`${resource}/`),
+    all: params => secured.get(`${resource}/`, { params }),
     get: id => secured.get(`${resource}/${id}/`),
     create: payload => secured.post(`${resource}/`, payload),
     update: payload => secured.patch(`${resource}/${payload.id}/`, payload),

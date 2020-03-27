@@ -24,7 +24,6 @@ export default {
         transit_country: null,
         disappearance_type: null,
         multi_times_case: null,
-        probable_destinations: null,
 
         personal_data: {
             first_name: '',
@@ -67,7 +66,6 @@ export default {
         psychological_data: {
             concerns: null,
             disappearance_reasons: null,
-            personality: null,
             addiction: null,
             family: null,
             parents_profile: null,

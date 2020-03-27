@@ -9,7 +9,7 @@
                     <v-layout align-center row wrap>
                         <v-flex xs12 sm12 md12 lg12 xl12>
                             <v-text-field
-                                v-model="caseObject.personal_data.first_name"
+                                v-model="caseObject.first_name"
                                 label="First name"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -17,7 +17,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md12 lg12 xl12>
                             <v-text-field
-                                v-model="caseObject.personal_data.last_name"
+                                v-model="caseObject.last_name"
                                 label="Last name"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -25,7 +25,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md12 lg12 xl12>
                             <v-text-field
-                                v-model="caseObject.demographic_data.date_of_birth"
+                                v-model="dateOfBirth"
                                 label="Date of birth"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -44,7 +44,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md12 lg12 xl12>
                             <v-text-field
-                                v-model="caseObject.demographic_data.nationality"
+                                v-model="caseObject.nationality"
                                 label="Nationality"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -71,6 +71,7 @@ export default {
     data() {
         return {
             baseUrl: process.env.VUE_APP_BACKEND,
+            dateOfBirth: null,
             isLoaded: false,
             caseObject: {},
         };
@@ -85,6 +86,7 @@ export default {
         async loadCase() {
             const { data: caseObject } = await CasesApi.get(this.id);
             this.caseObject = caseObject;
+            this.dateOfBirth = this.caseObject.date_of_birth;
             this.isLoaded = true;
         },
         getImagePath(path) {

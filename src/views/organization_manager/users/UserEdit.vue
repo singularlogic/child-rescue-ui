@@ -34,9 +34,15 @@
                                                   style="margin-right:5px;">
                                         </v-select>
                                     </v-flex>
-                                    <v-flex xs12 sm6 md6 lg6 xl6>
+                                    <v-flex xs12 sm6 v-if="user.role!=='facility_manager'">
                                         <v-select :items="organizationFacilities" v-model="user.facility" :rules="[rules.required]"
                                                   label="* Facility" :item-text="facilityTemplate" item-value="id" hint="Choose a facility for the user."
+                                                  style="margin-left:5px;">
+                                        </v-select>
+                                    </v-flex>
+                                    <v-flex xs12 sm6 v-else>
+                                        <v-select :items="organizationHostingFacilities" v-model="user.facility" :rules="[rules.required]"
+                                                  label="* Facility" :item-text="facilityTemplate" item-value="id" hint="Choose a hosting facility for the user."
                                                   style="margin-left:5px;">
                                         </v-select>
                                     </v-flex>
@@ -189,6 +195,7 @@ export default {
                 repeatPassword: value => (value && value === this.user.password) || 'Passwords must match!',
             },
             organizationFacilities: [],
+            organizationHostingFacilities: [],
             roleOptions: [
                 {
                     text: 'Coordinator',
@@ -215,18 +222,19 @@ export default {
     },
     async created() {
         if (this.id != null) {
-            this.loadUser();
+            await this.loadUser();
         }
+        await this.loadOrganizationFacilities();
+        await this.loadOrganizationHostingFacilities();
         this.isLoaded = true;
-        this.loadOrganizationFacilities();
     },
     methods: {
         facilityTemplate(item) {
             return `[${item.id}] ${item.name}`;
         },
-        validate() {
+        async validate() {
             if (this.$refs.userForm.validate()) {
-                this.save();
+                await this.save();
             }
         },
         reset() {
@@ -268,7 +276,10 @@ export default {
         async loadOrganizationFacilities() {
             const { data: facilities } = await FacilitiesApi.all();
             this.organizationFacilities = facilities;
-            this.isLoaded = true;
+        },
+        async loadOrganizationHostingFacilities() {
+            const { data: facilities } = await FacilitiesApi.all({ is_hosting: true });
+            this.organizationHostingFacilities = facilities;
         },
         async loadUser() {
             const { data: user } = await UsersApi.getUser(this.id);

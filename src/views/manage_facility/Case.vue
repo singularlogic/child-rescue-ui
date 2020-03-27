@@ -11,7 +11,7 @@
                     <v-flex xs12 sm6 md12 lg12 xl12 style="margin: 5px;">
                         <div>
                             <span style="font-size: x-large; font-weight: bold;">
-                                {{ this.caseObject.personal_data.first_name }} {{ this.caseObject.personal_data.last_name }}
+                                {{ this.caseObject.first_name }} {{ this.caseObject.last_name }}
                                 <v-chip
                                     v-if="caseObject.status === 'active'"
                                     dark
@@ -51,7 +51,7 @@
                             <v-btn :dark="caseObject.status !== 'active'" color="#800080" @click="setPresence('transit')">TRANSIT</v-btn>
                             <missing-report
                                 :case-id="caseObject.id"
-                                :full-name="caseObject.personal_data.full_name"
+                                :full-name="caseObject.full_name"
                             ></missing-report>
                         </div>
                         <div v-if="caseObject.presence_status === 'transit'" class="text-xs-right">

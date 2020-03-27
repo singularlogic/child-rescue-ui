@@ -11,36 +11,36 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.first_name" label="First name"
+                                <v-text-field v-model="caseObject.first_name" label="First name"
                                               :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.last_name" label="Last name"
+                                <v-text-field v-model="caseObject.last_name" label="Last name"
                                               :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.father_fullname"
+                                <v-text-field v-model="caseObject.father_fullname"
                                               label="Father's full name" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.mother_fullname"
+                                <v-text-field v-model="caseObject.mother_fullname"
                                               label="Mother's full name" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.date_of_birth"
+                                <v-text-field v-model="caseObject.date_of_birth"
                                               label="Date of birth" :class="{'disable-events': true }" class="textField" prepend-icon="event" readonly
                                               clearable>
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="genderOptions" v-model="caseObject.demographic_data.gender"
+                                <v-select :items="genderOptions" v-model="caseObject.gender"
                                           :class="{'disable-events': true }"
                                           label="Gender" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.phone" label="Phone"
+                                <v-text-field v-model="caseObject.phone" label="Phone"
                                               :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
@@ -101,15 +101,6 @@
                                             counter maxlength="1000">
                                 </v-textarea>
                             </v-flex>
-                            <v-flex xs12 sm12 md6 lg6 xl6>
-                                <v-textarea name="input-7-1"
-                                            v-model="caseObject.probable_destinations" box
-                                            label="Probable destinations"
-                                            placeholder="Probable destinations..." auto-grow
-                                            rows="1" :class="{'disable-events': true }" class="textField"
-                                            counter maxlength="5000">
-                                </v-textarea>
-                            </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-checkbox v-model="caseObject.volunteers_utilized"
                                             label="Volunteers utilized" :class="{'disable-events': true }" class="textField"></v-checkbox>
@@ -161,19 +152,15 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_country"
+                                <v-text-field v-model="caseObject.home_country"
                                               label="Home country" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_city" label="Home city"
-                                              :class="{'disable-events': true }" class="textField"></v-text-field>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_address"
+                                <v-text-field v-model="caseObject.home_address"
                                               label="Home address" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.arrival_at_facility_date"
+                                <v-text-field v-model="caseObject.arrival_at_facility_date"
                                               label="Arrival at facility" prepend-icon="event" readonly
                                               clearable :class="{'disable-events': true }" class="textField"
                                               hint="If the child has been in a facility"
@@ -181,23 +168,19 @@
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.birth_country"
+                                <v-text-field v-model="caseObject.birth_country"
                                               label="Birth country" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.birth_city" label="Birth city"
+                                <v-text-field v-model="caseObject.nationality" label="Nationality"
                                               :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.nationality" label="Nationality"
-                                              :class="{'disable-events': true }" class="textField"></v-text-field>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.psychological_data.religion"
+                                <v-text-field v-model="caseObject.religion"
                                               label="Religion" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.demographic_data.languages_spoken"
+                                <v-text-field v-model.number="caseObject.languages_spoken"
                                               label="Languages spoken" type="number" :class="{'disable-events': true }" class="textField"
                                               hint="The number of languages spoken by the child" persistent-hint>
                                 </v-text-field>
@@ -205,7 +188,7 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="educationOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.demographic_data.education_level"
+                                          v-model="caseObject.education_level"
                                           label="Education level" placeholder="Choose the child's education level"
                                           item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
@@ -214,16 +197,8 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="schoolGradesOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.school_grades"
+                                          v-model="caseObject.school_grades"
                                           label="School grades" item-text="text" item-value="value"
-                                          style="padding: 5px 15px;">
-                                </v-select>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="schoolAbsencesOptions"
-                                          :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.school_absences"
-                                          label="School absences" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
@@ -239,50 +214,50 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-text-field v-model="caseObject.physical_data.eye_color"
+                                <v-text-field v-model="caseObject.eye_color"
                                               label="Eye color" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-text-field v-model="caseObject.physical_data.hair_color"
+                                <v-text-field v-model="caseObject.hair_color"
                                               label="Hair color" :class="{'disable-events': true }" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-select :items="skinColorOptions" v-model="caseObject.physical_data.skin_color"
+                                <v-select :items="skinColorOptions" v-model="caseObject.skin_color"
                                           :class="{'disable-events': true }"
                                           label="Skin color" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.physical_data.height" label="Height"
+                                <v-text-field v-model.number="caseObject.height" label="Height"
                                               suffix="cm" :class="{'disable-events': true }" class="textField"
                                               style="padding: 5px 15px;" type="number" min="10" max="300"
                                               hint="Between 10 and 300" persistent-hint>
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.physical_data.weight" label="Weight"
+                                <v-text-field v-model.number="caseObject.weight" label="Weight"
                                               suffix="kg" :class="{'disable-events': true }" class="textField"
                                               style="padding: 5px 15px;" type="number" min="5" max="200"
                                               hint="Between 5 and 200" persistent-hint>
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="statureOptions" v-model="caseObject.physical_data.stature"
+                                <v-select :items="statureOptions" v-model="caseObject.stature"
                                           :class="{'disable-events': true }"
                                           label="Stature" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="bodyOptions" v-model="caseObject.physical_data.body_type"
+                                <v-select :items="bodyOptions" v-model="caseObject.body_type"
                                           :class="{'disable-events': true }"
                                           label="Body type" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
-                                <v-textarea name="input-7-1" v-model="caseObject.physical_data.characteristics" box
+                                <v-textarea name="input-7-1" v-model="caseObject.characteristics" box
                                             label="Characteristics" :class="{'disable-events': true }" class="textField"
                                             placeholder="Describe child's characteristics..." auto-grow rows="4"
                                             style="padding: 10px 15px;"
@@ -303,20 +278,20 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="triggeredEventOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.medical_data.triggered_event"
+                                          v-model="caseObject.triggered_event"
                                           label="Was there a trigger event?" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="concernOptions" v-model="caseObject.psychological_data.concerns"
+                                <v-select :items="concernOptions" v-model="caseObject.concerns"
                                           :class="{'disable-events': true }"
                                           label="Family/Facility issues that may affect child" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="disappearanceReasonsOptions" v-model="caseObject.psychological_data.disappearance_reasons"
+                                <v-select :items="disappearanceReasonsOptions" v-model="caseObject.disappearance_reasons"
                                           :class="{'disable-events': true }"
                                           label="General reasons of disappearance" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
@@ -325,13 +300,13 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="personalityOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.personality"
+                                          v-model="caseObject.mental_disorders"
                                           label="Mental/psychological disorders" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="familyOptions" v-model="caseObject.psychological_data.family"
+                                <v-select :items="familyOptions" v-model="caseObject.family"
                                           :class="{'disable-events': true }"
                                           label="Living Environment" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
@@ -340,7 +315,7 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="parentsProfileOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.parents_profile"
+                                          v-model="caseObject.parents_profile"
                                           label="Parent/Guardian with known issues (criminal, behavioural, etc)" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
@@ -348,13 +323,13 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="relationshipOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.relationship_status"
+                                          v-model="caseObject.relationship_status"
                                           label="Relationship" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.psychological_data.family_members"
+                                <v-text-field v-model.number="caseObject.family_members"
                                               label="Family members"
                                               type="number" :class="{'disable-events': true }" class="textField"
                                               hint="" persistent-hint>
@@ -362,7 +337,7 @@
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
                                 <v-textarea name="input-7-1"
-                                            v-model="caseObject.psychological_data.hobbies" box
+                                            v-model="caseObject.hobbies" box
                                             label="Hobbies" :class="{'disable-events': true }" class="textField"
                                             placeholder="Describe child's hobbies..." auto-grow rows="4"
                                             counter maxlength="5000">
@@ -382,7 +357,7 @@
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="addictionOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.psychological_data.addiction"
+                                          v-model="caseObject.addiction"
                                           label="Drug user or other addiction" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
@@ -390,7 +365,7 @@
                             <v-flex xs12 sm12 md4 lg4 xl4>
                                 <v-select :items="heathIssuesOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.medical_data.health_issues"
+                                          v-model="caseObject.health_issues"
                                           label="Other health issues" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
@@ -398,14 +373,14 @@
                             <v-flex xs12 sm12 md4 lg4 xl4>
                                 <v-select :items="medicalTreatmentOptions"
                                           :class="{'disable-events': true }"
-                                          v-model="caseObject.medical_data.medical_treatment_required"
+                                          v-model="caseObject.medical_treatment_required"
                                           label="Require treatment" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
                                 <v-textarea name="input-7-1"
-                                            v-model="caseObject.medical_data.health_issues_description" box
+                                            v-model="caseObject.health_issues_description" box
                                             label="Description" :class="{'disable-events': true }" class="textField"
                                             placeholder="Describe child's health issues..." auto-grow rows="4"
                                             counter maxlength="5000">
@@ -423,12 +398,12 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md12 lg12 xl12>
-                                <v-checkbox v-model="caseObject.social_media_data.has_social_profiles" :class="{'disable-events': true, textField }"
+                                <v-checkbox v-model="caseObject.has_social_profiles" :class="{'disable-events': true, textField }"
                                             label="Has social profiles"  class="textField"></v-checkbox>
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
                                 <v-textarea name="input-7-1"
-                                            v-model="caseObject.social_media_data.description" box
+                                            v-model="caseObject.description" box
                                             label="Social media info"
                                             placeholder="Describe child's social media activity..." auto-grow
                                             rows="4" :class="{'disable-events': true }" class="textField"
@@ -804,28 +779,6 @@ export default {
                 {
                     text: 'Bad',
                     value: 'bad',
-                },
-                {
-                    text: 'Unknown',
-                    value: null,
-                },
-            ],
-            schoolAbsencesOptions: [
-                {
-                    text: 'Low',
-                    value: 'low',
-                },
-                {
-                    text: 'Medium',
-                    value: 'medium',
-                },
-                {
-                    text: 'High',
-                    value: 'high',
-                },
-                {
-                    text: 'None',
-                    value: 'none',
                 },
                 {
                     text: 'Unknown',

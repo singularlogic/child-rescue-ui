@@ -123,6 +123,13 @@ const router = new Router({
                     meta: { title: 'Cases' },
                 },
                 {
+                    path: 'new',
+                    name: 'case_new',
+                    props: true,
+                    component: load('cases/CaseEdit'),
+                    meta: { title: 'CaseNew' },
+                },
+                {
                     path: ':id',
                     name: 'case',
                     props: true,
@@ -186,6 +193,13 @@ const router = new Router({
                             meta: { title: 'CaseControl', toolbar: true },
                             props: true,
                         },
+                        {
+                            path: 'analytics',
+                            name: 'analytics',
+                            component: load('cases/tabs/Analytics'),
+                            meta: { title: 'Analytics', toolbar: true },
+                            props: true,
+                        },
                     ],
                 },
                 {
@@ -194,13 +208,6 @@ const router = new Router({
                     props: true,
                     component: load('cases/CaseEdit'),
                     meta: { title: 'CaseEdit' },
-                },
-                {
-                    path: 'new',
-                    name: 'case_new',
-                    props: true,
-                    component: load('cases/CaseEdit'),
-                    meta: { title: 'CaseNew' },
                 },
             ],
         },

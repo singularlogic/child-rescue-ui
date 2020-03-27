@@ -20,8 +20,10 @@
                             <td class="text-xs-left">{{ props.item.last_name || '' | title }}</td>
                             <td class="text-xs-left">{{ props.item.facility_name ||  '' | title }}</td>
                             <td class="text-xs-center">
-                                <v-icon v-if="props.item.is_hosting_facility" color="green">house</v-icon>
-                                <v-icon v-else color="gray">house</v-icon>
+                                <div v-if="props.item.role!='volunteer'">
+                                    <v-icon v-if="props.item.is_hosting_facility" color="green">house</v-icon>
+                                    <v-icon v-else color="gray">house</v-icon>
+                                </div>
                             </td>
                             <td class="justify-center layout px-0">
                                 <v-icon

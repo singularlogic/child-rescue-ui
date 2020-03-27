@@ -42,35 +42,6 @@
                             </v-list-tile>
                             <v-list-tile>
                                 <v-list-tile-action>
-                                    <v-icon color="primary">email</v-icon>
-                                </v-list-tile-action>
-                                <v-layout>
-                                    <v-flex xs12 sm6 md6 lg6 xl6>
-                                        <v-text-field
-                                            style="margin-right: 5px;"
-                                            v-if="!isViewMode"
-                                            clearable
-                                            v-model="facility.email"
-                                            label="* Email"
-                                            :rules="[rules.email]"
-                                        ></v-text-field>
-                                    </v-flex>
-                                    <v-flex>
-                                        <v-text-field
-                                            style="margin-left: 5px;"
-                                            v-if="!isViewMode"
-                                            clearable
-                                            v-model="facility.phone"
-                                            mask="phone"
-                                            placeholder="(XXX) XXX XXXX"
-                                            label="Phone"
-                                            :rules="[rules.phone]"
-                                        ></v-text-field>
-                                    </v-flex>
-                                </v-layout>
-                            </v-list-tile>
-                            <v-list-tile>
-                                <v-list-tile-action>
                                     <v-icon color="primary">info</v-icon>
                                 </v-list-tile-action>
                                 <v-layout v-if="facility.supports_hosting">
@@ -97,6 +68,35 @@
                                                   label="* Is hosting" item-text="text" item-value="value" hint="Select the facility role."
                                                   style="margin-right:5px;">
                                         </v-select>
+                                    </v-flex>
+                                </v-layout>
+                            </v-list-tile>
+                            <v-list-tile>
+                                <v-list-tile-action>
+                                    <v-icon color="primary">email</v-icon>
+                                </v-list-tile-action>
+                                <v-layout>
+                                    <v-flex xs12 sm6 md6 lg6 xl6>
+                                        <v-text-field
+                                            style="margin-right: 5px;"
+                                            v-if="!isViewMode"
+                                            clearable
+                                            v-model="facility.email"
+                                            label="Email"
+                                            :rules="[rules.email]"
+                                        ></v-text-field>
+                                    </v-flex>
+                                    <v-flex>
+                                        <v-text-field
+                                            style="margin-left: 5px;"
+                                            v-if="!isViewMode"
+                                            clearable
+                                            v-model="facility.phone"
+                                            mask="phone"
+                                            placeholder="(XXX) XXX XXXX"
+                                            label="Phone"
+                                            :rules="[rules.phone]"
+                                        ></v-text-field>
                                     </v-flex>
                                 </v-layout>
                             </v-list-tile>
@@ -182,7 +182,7 @@ export default {
             rules: {
                 required: value => (!!value || value === false) || 'Field is required',
                 address: value => (value && value.length > 5 && value.length < 250) || 'Address must be between 5 and 50 characters',
-                name: value => (value && value.length >= 3 && value.length <= 20) || 'Field must be between 3 and 20 characters',
+                name: value => (value && value.length >= 3 && value.length <= 20) || 'Field must be between 3 and 128 characters',
                 capacity: value => (value && value > 0 && value <= 1000) || 'Number of children must be between 0 and 1000',
                 phone: value => ((value && value.length === 10) || !value) || 'Phone must have 10 characters',
                 email: value => ((value && /.+@.+/.test(value)) || !value) || 'E-mail must be valid',

@@ -3,6 +3,9 @@ import { secured } from '../plugins/axios';
 const resource = '/cases/web_admin_api';
 
 export default {
+    children: params => secured.get(`${resource}/children/`, { params }),
+    getChild: childId => secured.get(`${resource}/children/${childId}/`),
+
     all: params => secured.get(`${resource}/`, { params }),
     getActiveCases: params => secured.get(`${resource}/?is_active=true`, { params }),
     create: payload => secured.post(`${resource}/`, payload),
@@ -16,8 +19,13 @@ export default {
     reportMissing: caseId => secured.get(`${resource}/facility_cases/${caseId}/report_missing/`),
 
     close: caseId => secured.get(`${resource}/${caseId}/close_case/`),
+    archive: caseId => secured.get(`${resource}/${caseId}/archive_case/`),
     // updateImage: (id, payload) => secured.post(`${resource}/upload_image/`, payload),
     updateImage: (caseId, payload, headers) => secured.put(`${resource}/${caseId}/`, payload, headers),
+
+    getSocialMedia: params => secured.get(`${resource}/social_media/`, { params }),
+    createSocialMedia: payload => secured.post(`${resource}/social_media/`, payload),
+    updateSocialMedia: payload => secured.patch(`${resource}/social_media/${payload.id}/`, payload),
 
     getVolunteers: caseId => secured.get(`${resource}/${caseId}/volunteers/`),
     addVolunteers: (caseId, payload) => secured.post(`${resource}/${caseId}/volunteers/add/`, payload),

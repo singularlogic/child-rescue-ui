@@ -43,6 +43,7 @@
                     <v-tab :ripple="false" :to="`/cases/${$route.params.id}/files`">Files</v-tab>
                     <v-tab :ripple="false" :to="`/cases/${$route.params.id}/places`">Places</v-tab>
                     <v-tab :ripple="false" :to="`/cases/${$route.params.id}/control`">Control</v-tab>
+                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/analytics`">Analytics</v-tab>
                 </v-tabs>
             </template>
         </v-toolbar>
@@ -243,7 +244,7 @@ export default {
                 const { data: caseObject } = await CasesApi.get(this.$route.params.id);
                 this.caseObject = caseObject;
                 this.titleStyle.color = this.getColor();
-                this.name = `${this.caseObject.personal_data.first_name} ${this.caseObject.personal_data.last_name}`;
+                this.name = `${this.caseObject.first_name} ${this.caseObject.last_name}`;
                 this.isToolbarActiveFlag = true;
             } else {
                 this.isToolbarActiveFlag = false;

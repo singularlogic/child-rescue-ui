@@ -1,10 +1,10 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div v-if="isLoaded">
         <v-card flat>
-            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" dense flat color="white">
+            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
                 <v-spacer></v-spacer>
                 <div class="text-xs-right">
-                    <alert :case-id="caseObject.id" :case-alert-message="caseObject.default_message" :full-name="caseObject.personal_data.full_name"></alert>
+                    <alert :case-id="caseObject.id" :case-alert-message="caseObject.default_message" :full-name="caseObject.full_name"></alert>
                 </div>
             </v-toolbar>
             <v-data-table :headers="headers" :items="alerts" :search="search" :pagination.sync="pagination">

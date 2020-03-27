@@ -1,7 +1,14 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div>
         <v-card v-if="isLoaded">
-            <v-toolbar v-if="$networkManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" dense flat color="white">
+            <v-toolbar v-if="$networkManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
+                <v-text-field
+                    v-model="search"
+                    append-icon="search"
+                    label="Search"
+                    single-line
+                    hide-details
+                ></v-text-field>
                 <v-spacer></v-spacer>
                 <v-btn @click="openManageVolunteersDialog()" color="primary" dark>Invite Volunteers</v-btn>
             </v-toolbar>
@@ -11,6 +18,7 @@
                         <td class="text-xs-left">{{ props.item.email }}</td>
                         <td class="text-xs-left">{{ props.item.first_name || ' - ' | title }}</td>
                         <td class="text-xs-left">{{ props.item.last_name || ' - ' | title }}</td>
+                        <td class="text-xs-left">{{ props.item.city || ' - ' | title }}</td>
                         <td class="text-xs-left">{{ props.item.team_name || ' - ' | title }}</td>
                         <td class="text-xs-left">
                             <v-icon v-if="props.item.is_team_leader" color="green">check</v-icon>
@@ -36,38 +44,21 @@
         <v-dialog v-model="manageVolunteersDialog" width="700">
             <v-card>
                 <v-toolbar flat color="white">
-                    <v-toolbar-title>Select volunteers for the case</v-toolbar-title>
+                    <v-toolbar-title class="mt-3">Select volunteers for the case</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-text-field
+                        v-model="dialogSearch"
+                        prepend-icon="search"
+                        clearable
+                        label="Search"
+                        single-line
+                        hide-details
+                    ></v-text-field>
                 </v-toolbar>
-                <v-data-table :headers="allVolunteerHeaders" :items="formatted" v-model="selected">
-                    <template v-slot:headers="props">
-                        <tr>
-                            <th>
-                                <!-- <v-checkbox
-                                    :input-value="props.all"
-                                    :indeterminate="props.indeterminate"
-                                    primary
-                                    hide-details
-                                    @click.stop="toggleAll"
-                                    :disabled='selected.length>0'
-                                ></v-checkbox> -->
-                            </th>
-                            <th
-                                v-for="header in props.headers"
-                                :key="header.text"
-                                @click="changeSort(header.value)"
-                                align="left"
-                            >
-                                <v-icon small>arrow_upward</v-icon>
-                                {{ header.text }}
-                            </th>
-                        </tr>
-                    </template>
+                <v-data-table :headers="allVolunteerHeaders" :items="formatted" v-model="selected" :search="dialogSearch" style="margin-top:-5px;">
                     <template v-slot:items="props">
-                        <!-- @click="props.selected = toggleSelection(props.selected)" -->
                         <tr v-if="props.item.selected" :active="props.selected">
                             <td>
-                                <!-- <v-checkbox v-if="!props.selected" :input-value="props.selected" primary hide-details :disabled='props.selected'></v-checkbox> -->
-                                <!-- <v-checkbox :input-value="props.selected" primary hide-details :disabled='props.selected'></v-checkbox> -->
                                 <v-chip label small color="primary">Invited</v-chip>
                             </td>
                             <td class="text-xs-left">{{ props.item.email }}</td>
@@ -77,7 +68,6 @@
                         </tr>
                         <tr v-else-if="props.item.last_login !== null" :active="props.selected" @click="props.selected = toggleSelection(props.selected)">
                             <td>
-                                <!-- <v-checkbox v-if="!props.selected" :input-value="props.selected" primary hide-details :disabled='props.selected'></v-checkbox> -->
                                 <v-checkbox :input-value="props.selected" primary hide-details :disabled='props.selected' label="Invite"></v-checkbox>
                             </td>
                             <td class="text-xs-left">{{ props.item.email }}</td>
@@ -101,9 +91,14 @@
                 </v-data-table>
                 <v-divider></v-divider>
                 <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="" flat @click="manageVolunteersDialog = false;">Close</v-btn>
-                    <v-btn color="primary" flat @click="updateVolunteers()">Invite</v-btn>
+                    <v-textarea
+                        v-model="invitationMessage" outline
+                        rows="2" row-height="50px"
+                        label="Invitation message" placeholder="Write a message for invitations..."
+                        no-resize class="mx-2"
+                    ></v-textarea>
+                    <v-btn color="" @click="manageVolunteersDialog = false;">Close</v-btn>
+                    <v-btn color="primary" @click="updateVolunteers()">Invite</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -227,6 +222,7 @@ export default {
     mixins: [dates, filters, fonts],
     data() {
         return {
+            invitationMessage: '',
             formatted: [],
             selectedVolunteer: {},
             editVolunteerDialog: false,
@@ -239,8 +235,16 @@ export default {
             volunteers: [],
             allVolunteers: [],
             search: '',
+            dialogSearch: '',
             pagination: { sortBy: 'start', descending: true, rowsPerPage: 10 },
             allVolunteerHeaders: [
+                {
+                    text: '',
+                    value: '',
+                    width: '1%',
+                    align: '',
+                    sortable: false,
+                },
                 {
                     text: 'Email',
                     value: 'email',
@@ -280,6 +284,11 @@ export default {
                 {
                     text: 'Last name',
                     value: 'last_name',
+                    width: '20%',
+                },
+                {
+                    text: 'City',
+                    value: 'city',
                     width: '20%',
                 },
                 {
@@ -334,13 +343,6 @@ export default {
             }
             return !selected;
         },
-        // toggleSelection(selected) {
-        //     console.log('XAXAXA');
-        //     // if (selected === undefined || selected !== true) {
-        //     //     selected = true;
-        //     // }
-        //     return !selected;
-        // },
         toggleAll() {
             if (this.selected.length) this.selected = [];
             else this.selected = this.allVolunteers.slice();
@@ -364,12 +366,14 @@ export default {
             });
         },
         openManageVolunteersDialog() {
+            this.invitationMessage = '';
             this.manageVolunteersDialog = true;
             this.selected = this.allVolunteers.filter(volunteer => this.volunteers.find(caseVolunteer => volunteer.id === caseVolunteer.user));
         },
         async updateVolunteers() {
             const userIds = this.selected.map(volunteer => volunteer.id);
-            const { data: volunteers } = await CasesApi.addVolunteers(this.caseId, userIds);
+            console.log(this.invitationMessage);
+            const { data: volunteers } = await CasesApi.addVolunteers(this.caseId, { userIds, message: this.invitationMessage });
             this.manageVolunteersDialog = false;
             this.loadVolunteers();
         },

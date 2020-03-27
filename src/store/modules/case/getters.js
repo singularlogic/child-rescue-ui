@@ -17,24 +17,6 @@ export const getFormattedCreatedCase = state => (caseObject) => {
 
 export const getFormattedUpdatedCase = state => (caseObject) => {
     const caseObjectClone = R.clone(caseObject);
-    delete caseObjectClone.demographic_data.id;
-    delete caseObjectClone.demographic_data.case;
-
-    delete caseObjectClone.medical_data.id;
-    delete caseObjectClone.medical_data.case;
-
-    delete caseObjectClone.psychological_data.id;
-    delete caseObjectClone.psychological_data.case;
-
-    delete caseObjectClone.physical_data.id;
-    delete caseObjectClone.physical_data.case;
-
-    delete caseObjectClone.personal_data.id;
-    delete caseObjectClone.personal_data.case;
-
-    delete caseObjectClone.social_media_data.id;
-    delete caseObjectClone.social_media_data.case;
-
     delete caseObjectClone.profile_photo;
     return caseObjectClone;
 };

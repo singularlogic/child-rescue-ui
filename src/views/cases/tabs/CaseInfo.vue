@@ -1,11 +1,18 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div v-if="isLoaded">
         <v-card flat>
-            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" dense flat color="white">
+            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
                 <v-spacer></v-spacer>
                 <div class="text-xs-right">
                     <v-btn dark color="#F4B350" @click="loadEditCase()">Edit case</v-btn>
                     <v-btn outline dark color="#000000" @click="closeCase()">CLOSE CASE</v-btn>
+                </div>
+            </v-toolbar>
+            <v-toolbar v-if="caseObject.status==='closed'" dense flat color="white">
+                <v-spacer></v-spacer>
+                <div class="text-xs-right">
+                    <v-btn dark color="#F4B350" @click="loadEditCase()">Edit case</v-btn>
+                    <v-btn outline dark color="#000000" @click="archiveCase()">ARCHIVE CASE</v-btn>
                 </div>
             </v-toolbar>
             <v-layout row wrap>
@@ -16,7 +23,7 @@
                     <v-layout align-center row wrap>
                         <v-flex xs12 sm12 md4 lg4 xl4>
                             <v-text-field
-                                v-model="caseObject.personal_data.first_name"
+                                v-model="caseObject.first_name"
                                 label="First name"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -24,7 +31,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md4 lg4 xl4>
                             <v-text-field
-                                v-model="caseObject.personal_data.last_name"
+                                v-model="caseObject.last_name"
                                 label="Last name"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -32,7 +39,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md4 lg4 xl4>
                             <v-text-field
-                                :value="getAge(caseObject.demographic_data.date_of_birth)"
+                                :value="getAge(caseObject.date_of_birth)"
                                 label="Age"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -65,7 +72,7 @@
                         </v-flex>
                         <v-flex xs12 sm12 md6 lg6 xl6>
                             <v-text-field
-                                v-model="caseObject.demographic_data.nationality"
+                                v-model="caseObject.nationality"
                                 label="Nationality"
                                 :class="{'disable-events': true }"
                                 class="textField"
@@ -90,7 +97,8 @@
 <script>
 import moment from 'moment';
 import { dates, filters, fonts } from '@/utils/mixins';
-import { CasesApi } from '@/api';
+import { CasesApi, FeedbacksApi } from '@/api';
+import { SET_SNACKBAR_STATUS } from '@/store/mutation-types';
 
 
 export default {
@@ -110,14 +118,38 @@ export default {
     },
     methods: {
         getAge(birthDate) {
-            return `${Math.floor((new Date() - new Date(birthDate).getTime()) / 3.15576e+10)} years`;
+            if (birthDate) {
+                return `${Math.floor((new Date() - new Date(birthDate).getTime()) / 3.15576e+10)} years`;
+            }
+            return ' - ';
         },
         loadEditCase() {
-            this.$router.push({ name: 'case_edit', params: { caseObject: this.caseObject } });
+            this.$router.push({ name: 'case_edit', params: { caseObjectProp: this.caseObject } });
         },
         async closeCase() {
             await CasesApi.close(this.id);
             this.$router.push({ name: 'cases' });
+        },
+        async archiveCase() {
+            const { data: feedbacks } = await FeedbacksApi.all({ caseId: this.caseObject.id });
+            this.feedbacks = feedbacks;
+            let checkFeedbacks = true;
+            feedbacks.forEach((feedback) => {
+                if (feedback.is_valid === null || feedback.is_valid === undefined) {
+                    checkFeedbacks = false;
+                }
+            });
+            if (this.caseObject.disappearance_type == null || this.caseObject.disappearance_type === undefined) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'You must set disappearance type before archiving the case!', color: 'error' });
+            } else if (this.caseObject.is_refugee == null || this.caseObject.is_refugee === undefined) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'You must set refugee before archiving the case!', color: 'error' });
+            } else if (!checkFeedbacks) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'You must set set facts validation before archiving the case!', color: 'error' });
+            } else {
+                await CasesApi.archive(this.id);
+                this.$router.push({ name: 'cases' });
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Case has been archived!', color: 'primary' });
+            }
         },
         getDate(value) {
             return moment(String(value)).format('YYYY-MM-DD HH:mm:ss');

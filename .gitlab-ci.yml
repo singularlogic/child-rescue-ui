@@ -1,0 +1,56 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+stages:
+  - version
+  - build
+  - release
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  CONTAINER_LATEST: $CI_REGISTRY_IMAGE:latest
+
+version:
+  stage: version
+  image: registry.gitlab.com/juhani/go-semrel-gitlab:v0.19.1
+  script:
+    - release next-version --allow-current > .next-version
+  artifacts:
+    paths:
+      - .next-version
+  except:
+    - tags
+
+build image:
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build --pull -t $CONTAINER_LATEST .
+    - docker push $CONTAINER_LATEST
+  except:
+    - tags
+
+create release:
+  stage: release
+  image: registry.gitlab.com/juhani/go-semrel-gitlab:v0.19.1
+  script:
+    - tag=`cat .next-version`
+    - release changelog
+    - release commit-and-tag CHANGELOG.md
+    - release --ci-commit-tag v$tag
+  only:
+    - master
+
+publish image:
+  stage: release
+  script:
+    - tag=`cat .next-version`
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker pull $CONTAINER_LATEST
+    - docker tag $CONTAINER_LATEST $CI_REGISTRY_IMAGE:$tag
+    - docker push $CI_REGISTRY_IMAGE:$tag
+  only:
+    - master

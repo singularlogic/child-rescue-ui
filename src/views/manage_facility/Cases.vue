@@ -3,66 +3,39 @@
         <v-flex xs12 sm12 md12 lg12 xl12 style="padding: 0px;">
             <v-layout column justify-center fill-height>
                 <v-flex>
-                    <v-breadcrumbs :items="linkItems">
-                        <template v-slot:divider>
-                            <v-icon>chevron_right</v-icon>
-                        </template>
-                    </v-breadcrumbs>
-                </v-flex>
-                <v-flex>
-                    <v-layout wrap>
-                        <v-flex xs12 sm12 md6 lg6 xl6>
-                            <v-layout>
-                                <v-flex xs12 sm6 md4 lg4 xl4>
-                                    <v-select
-                                        v-model="selectedSort"
-                                        :items="sortItems"
-                                        label="Sort by:"
-                                        class="textField"
-                                        @change="applySort()"
-                                    ></v-select>
-                                </v-flex>
-                                <v-flex xs12 sm6 md4 lg4 xl4>
-                                    <v-select
-                                        v-model="selectedFilter"
-                                        :items="filterItems"
-                                        label="Filter by:"
-                                        class="textField"
-                                        @change="applyFilter()"
-                                    ></v-select>
-                                </v-flex>
-                            </v-layout>
-                        </v-flex>
-                        <v-flex xs12 sm12 md6 lg6 xl6>
-                            <v-layout align-center row fill-height reverse>
-                                <v-flex xs12 sm12 md5 lg4 xl4>
-                                    <v-btn dark color="#F4B350" @click="loadCaseManagement">
-                                        <v-icon dark>add</v-icon>Add Child
-                                    </v-btn>
-                                </v-flex>
-                            </v-layout>
-                        </v-flex>
-                    </v-layout>
+                    <v-toolbar class="mb-2" flat color="transparent">
+                        <v-toolbar-title style="width: 200px;">
+                            <v-select
+                                v-model="selectedSort"
+                                :items="sortItems"
+                                label="Sort by:"
+                                class="mt-3"
+                                @change="applySort()"
+                            ></v-select>
+                        </v-toolbar-title>
+                        <v-toolbar-title style="width: 100px;">
+                            <v-select
+                                v-model="selectedFilter"
+                                :items="filterItems"
+                                label="Filter by:"
+                                class="mt-3"
+                                @change="applyFilter()"
+                            ></v-select>
+                        </v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-btn dark color="#F4B350" @click="loadCaseManagement">
+                            <v-icon dark>add</v-icon>Add Child
+                        </v-btn>
+                    </v-toolbar>
                 </v-flex>
                 <v-flex v-if="cases.length >= 1" fill-height>
                     <v-layout row wrap>
                         <!-- <h3>Children in facility ({{ cases.length }})</h3> -->
-                        <v-flex xs12 sm6 md3 lg3 xl2 v-for="item in cases" @click="loadFacilityCase(item)">
-                            <v-card
-                                class="clickable_card"
-                                tile
-                                style="padding: 5px; margin: 5px 15px 15px 15px;"
-                            >
-                                <v-img
-                                    :src="getImagePath(item.profile_photo)"
-                                    height="165px"
-                                    class="tile_background"
-                                >
+                        <v-flex xs12 sm6 md3 lg3 xl2 v-for="item in cases" :key="item.id" @click="loadFacilityCase(item)">
+                            <v-card class="clickable_card" tile style="padding: 5px; margin: 5px 15px 15px 15px;">
+                                <v-img :src="getImagePath(item.profile_photo)" height="165px" class="tile_background">
                                     <v-container fill-height fluid pa-2>
-                                        <v-layout
-                                            justify-space-between
-                                            class="tile_background_tags"
-                                        >
+                                        <v-layout justify-space-between class="tile_background_tags">
                                             <v-flex v-if="item.presence_status === 'present'" class="tile_background_tag_right">
                                                 <span style="background-color: green; padding: 5px; border-radius: 2px;">present</span>
                                             </v-flex>
@@ -75,14 +48,10 @@
                                         </v-layout>
                                     </v-container>
                                 </v-img>
-                                <div
-                                    style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;"
-                                >{{ item.last_name | title }} {{ item.first_name | title }}</div>
+                                <div style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;">
+                                    {{ item.last_name | title }} {{ item.first_name | title }}</div>
                                 <div style="text-align: left; color: #C0C0C0;">
-                                    Arrival date:
-                                    <b>
-                                        {{item.arrival_date | formatDate }}
-                                    </b>
+                                    Arrival date:<b>{{item.arrival_date | formatDate }}</b>
                                 </div>
                             </v-card>
                         </v-flex>
@@ -112,18 +81,6 @@ export default {
             cases: [],
             isLoaded: false,
             baseUrl: process.env.VUE_APP_BACKEND,
-            linkItems: [
-                {
-                    text: 'Home',
-                    disabled: false,
-                    href: '/',
-                },
-                {
-                    text: 'Manage Facility',
-                    disabled: true,
-                    href: '/manage_facility',
-                },
-            ],
             sortItems: [
                 {
                     text: 'Arrival date',

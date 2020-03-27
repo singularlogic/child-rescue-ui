@@ -4,7 +4,7 @@
             <v-toolbar dense flat class="mb-0">
                 <v-toolbar-title></v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn v-if="$networkManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" @click="openCreatePostDialog()" color="primary" dark>Create post</v-btn>
+                <v-btn v-if="$networkManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" @click="openCreatePostDialog()" color="primary" dark>Create post</v-btn>
             </v-toolbar>
             <v-layout v-if="posts.length > 0" fill-height row wrap align-start justify-center style="max-height:775px; overflow-y: scroll;">
                 <v-flex v-for="(item) in posts" :key="item.id" xs12>
@@ -32,7 +32,7 @@
                             <v-flex xs12 sm4 class='px-2'>
                                 <v-checkbox
                                     v-model="isVisibleToVolunteers"
-                                    :value="false"
+                                    :value="true"
                                     :label="`Notify volunteers: ${isVisibleToVolunteers || false}`"
                                 ></v-checkbox>
                             </v-flex>
@@ -86,14 +86,24 @@
                                     class="textField"
                                     @keyup.enter.native="triggerPlaceChangeEvent()"/>
                             </v-flex>
-                            <v-flex v-if="hasMap===true" xs12 sm2 class='pl-4 mt-2'>
+                            <v-flex v-if="hasMap===true" xs12 sm2 class='pl-4 my-2'>
                                 <v-btn dark color="primary" @click="triggerPlaceChangeEvent()">Find address</v-btn>
                             </v-flex>
-                            <v-flex v-if="showMap" xs12 sm12 md12 lg12 xl12 class="ml-4 mr-2" my-1>
+                            <v-flex v-if="showMap" xs12 class="mt-3 mb-2 mb-2 mx-2">
+                                <v-text-field v-model="post.radius" suffix="km"
+                                              label="Radius" placeholder="Set radius in km"
+                                              hint="Default is 5km"
+                                              style="padding: 5px;"
+                                              prepend-icon="360" @input="loadSearchField(post)"
+                                              :class="{'disable-events': isViewMode || isEditMode }"></v-text-field>
+                            </v-flex>
+                            <v-flex v-if="showMap" xs12 class="mx-2">
                                 <gmap-map :center="center" :zoom="18" :options="mapOptions"
-                                          style="width:100%;  height: 230px; margin-bottom: 5px;">
-                                    <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                 :draggable="false" @click="center=m.position"/>
+                                          style="width:100%;  height: 280px; margin-bottom: 5px;">
+                                    <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
+                                                 :draggable="false" @click="center=m.position"/> -->
+                                    <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
+                                                 :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                 </gmap-map>
                             </v-flex>
                         </v-layout>
@@ -126,7 +136,7 @@ export default {
     data() {
         return {
             tag: null,
-            isVisibleToVolunteers: false,
+            isVisibleToVolunteers: true,
             tags: [
                 {
                     text: 'Announcement',
@@ -233,7 +243,8 @@ export default {
                         this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Invalid address', color: 'error' });
                     } else {
                         results[0].formatted_address = this.address;
-                        this.setPlace(results[0]);
+                        // this.setPlace(results[0]);
+                        this.loadSearchField(results[0]);
                         this.showMap = true;
                     }
                 });
@@ -245,20 +256,32 @@ export default {
             this.post.latitude = null;
             this.post.longitude = null;
         },
-        setPlace(data) {
+        // setPlace(data) {
+        //     this.markers = [];
+        //     this.post.address = data.formatted_address;
+        //     this.post.latitude = data.geometry.location.lat();
+        //     this.post.longitude = data.geometry.location.lng();
+        //     const position = {
+        //         lat: data.geometry.location.lat(),
+        //         lng: data.geometry.location.lng(),
+        //     };
+        //     this.markers.push({ position });
+        //     this.center = position;
+        // },
+        loadSearchField(postObject) {
+            console.log(this.postObject);
             this.markers = [];
-            this.post.address = data.formatted_address;
-            this.post.latitude = data.geometry.location.lat();
-            this.post.longitude = data.geometry.location.lng();
             const position = {
-                lat: data.geometry.location.lat(),
-                lng: data.geometry.location.lng(),
+                lat: postObject.latitude,
+                lng: postObject.longitude,
             };
-            this.markers.push({ position });
+            const radius = this.postObject.radius * 1000;
+            this.markers.push({ instance: this.postObject, position, radius });
             this.center = position;
+            this.currentPlace = null;
         },
         async savePost() {
-            this.post.is_visible_to_volunteers = this.isVisibleToVolunteers;
+            this.post.is_visible_to_volunteers = this.isVisibleToVolunteers || false;
             const tempPost = R.clone(this.post);
             delete tempPost.image;
             const { data: post } = await CasesApi.createPost(this.caseId, tempPost);

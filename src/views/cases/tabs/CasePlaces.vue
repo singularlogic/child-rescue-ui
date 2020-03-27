@@ -1,7 +1,7 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div>
         <v-card v-if="isLoaded">
-            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'" dense flat color="white">
+            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
                 <v-spacer></v-spacer>
                 <v-btn @click="openAddPlaceDialog()" color="primary" dark>Add place</v-btn>
             </v-toolbar>
@@ -10,9 +10,9 @@
                     <tr>
                         <td class="text-xs-left">{{ props.item.id }}</td>
                         <td class="text-xs-left">{{ props.item.address || ' - ' | title }}</td>
-                        <td class="text-xs-left">{{ props.item.tag || ' - ' | title }}</td>
+                        <td class="text-xs-left">{{ props.item.tag || ' - ' | customTitle('_') }}</td>
                         <td class="text-xs-left">{{ props.item.source || ' - ' | title }}</td>
-                        <td class="text-xs-left">{{ props.item.description || ' - ' | title }}</td>
+                        <td class="text-xs-left">{{ props.item.description || ' - ' | title | truncate(30) }}</td>
                         <td class="text-xs-left">{{ props.item.evaluation || ' - ' | title }}</td>
                         <td class="text-xs-left">
                             <v-icon v-if="props.item.is_searched" color="green">check</v-icon>
@@ -177,17 +177,17 @@ export default {
                 {
                     text: 'ID',
                     value: 'id',
-                    width: '10%',
+                    width: '5%',
                 },
                 {
                     text: 'Address',
                     value: 'address',
-                    width: '25%',
+                    width: '15%',
                 },
                 {
                     text: 'Tag',
                     value: 'tag',
-                    width: '15%',
+                    width: '5%',
                 },
                 {
                     text: 'Source',
@@ -198,15 +198,17 @@ export default {
                     text: 'Description',
                     align: 'left',
                     value: 'description',
-                    width: '5%',
+                    width: '30%',
                 },
                 {
                     text: 'Evaluation',
                     value: 'evaluation',
+                    width: '5%',
                 },
                 {
                     text: 'Is searched',
                     value: 'is_searched',
+                    width: '5%',
                 },
                 {
                     align: 'center',
@@ -327,8 +329,9 @@ export default {
             this.clearPlace();
             this.showMap = false;
         },
-        openAddPlaceDialog(place) {
+        openAddPlaceDialog(originalPlace) {
             this.reset();
+            const place = R.clone(originalPlace);
             this.editPlaceDialog = true;
             if (place) {
                 this.place = place;

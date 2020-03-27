@@ -1,10 +1,12 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div style="padding: 10px;">
-        <v-breadcrumbs :items="linkItems">
-            <template v-slot:divider>
-                <v-icon>chevron_right</v-icon>
-            </template>
-        </v-breadcrumbs>
+    <div v-if="isLoaded" style="padding: 10px;">
+        <v-toolbar color="white" flat>
+            <v-btn @click="cancel()" icon><v-icon>arrow_back</v-icon></v-btn>
+            <div class="title">Cases</div>
+            <v-spacer></v-spacer>
+            <v-btn @click="save()" color="primary">Save</v-btn>
+            <v-btn flat @click="cancel()">Cancel</v-btn>
+        </v-toolbar>
         <v-layout>
             <v-flex xs12 sm12 md12 lg12 xl12>
                 <v-card color="grey lighten-5" class="mb-5" style="padding: 15px;">
@@ -17,21 +19,28 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.first_name" label="* First name"
+                                <v-text-field v-model="caseObject.first_name" label="* First name"
                                               :rules="[rules.required]"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.last_name" label="* Last name"
+                                <v-text-field v-model="caseObject.last_name" label="* Last name"
                                               :rules="[rules.required]"
                                               class="textField"></v-text-field>
                             </v-flex>
+                            <v-flex xs12 md3 lg3 xl3>
+                                <v-text-field
+                                    class="textField"
+                                    ref="customName"
+                                    v-model="caseObject.custom_name"
+                                    label="* Custom name"></v-text-field>
+                            </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.father_fullname"
+                                <v-text-field v-model="caseObject.father_fullname"
                                               label="Father's full name" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.mother_fullname"
+                                <v-text-field v-model="caseObject.mother_fullname"
                                               label="Mother's full name" class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
@@ -39,31 +48,38 @@
                                         lazy
                                         transition="scale-transition" offset-y full-width min-width="290px">
                                     <template v-slot:activator="{ on }">
-                                        <v-text-field v-model="caseObject.demographic_data.date_of_birth"
+                                        <v-text-field v-model="caseObject.date_of_birth"
                                                       label="Date of birth"
                                                       prepend-icon="event" readonly v-on="on"
                                                       style="padding: 5px 15px;"
                                                       clearable>
                                         </v-text-field>
                                     </template>
-                                    <v-date-picker v-model="caseObject.demographic_data.date_of_birth"
+                                    <v-date-picker v-model="caseObject.date_of_birth"
                                                    @input="dateOfBirthMenu = false"></v-date-picker>
                                 </v-menu>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="genderOptions" v-model="caseObject.demographic_data.gender"
+                                <v-select :items="genderOptions" v-model="caseObject.gender"
                                           label="Gender" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.personal_data.phone" label="Contact Phone"
+                                <v-text-field v-model="caseObject.phone" label="Contact Phone"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="disappearanceTypeOptions"
                                           v-model="caseObject.disappearance_type"
                                           label="Disappearance type" item-text="text" item-value="value"
+                                          style="padding: 5px 15px;">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-select :items="isRefugeeOptions"
+                                          v-model="caseObject.is_refugee"
+                                          label="Is refugee" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
@@ -157,23 +173,28 @@
                                 <v-flex xs12 sm12 md12 lg12 xl12>
                                     <v-layout row wrap>
                                         <v-flex xs12 sm12 md3 lg3 xl3>
-                                            <v-checkbox v-model="caseObject.has_mobile_phone"
-                                                        label="Has mobile phone" style="padding: 5px 15px;"></v-checkbox>
+                                            <v-select :items="mobileOptions"
+                                                      v-model="caseObject.has_mobile_phone"
+                                                      label="Has mobile phone" style="padding: 5px 15px;">
+                                            </v-select>
                                         </v-flex>
                                         <v-flex xs12 sm12 md3 lg3 xl3>
-                                            <v-checkbox v-model="caseObject.has_money_or_credit"
-                                                        label="Has money or credit"
-                                                        style="padding: 5px 15px;"></v-checkbox>
+                                            <v-select :items="moneyOptions"
+                                                      v-model="caseObject.has_money_or_credit"
+                                                      label="Has money or credit" style="padding: 5px 15px;">
+                                            </v-select>
                                         </v-flex>
                                         <v-flex xs12 sm12 md3 lg3 xl3>
-                                            <v-checkbox v-model="caseObject.has_area_knowledge"
-                                                        label="Has area knowledge"
-                                                        style="padding: 5px 15px;"></v-checkbox>
+                                            <v-select :items="booleanOptions"
+                                                      v-model="caseObject.has_area_knowledge"
+                                                      label="Has area knowledge" style="padding: 5px 15px;">
+                                            </v-select>
                                         </v-flex>
                                         <v-flex xs12 sm12 md3 lg3 xl3>
-                                            <v-checkbox v-model="caseObject.clothing_with_scent"
-                                                        label="Clothing with scent"
-                                                        style="padding: 5px 15px;"></v-checkbox>
+                                            <v-select :items="booleanOptions"
+                                                      v-model="caseObject.clothing_with_scent"
+                                                      label="Clothing with scent" style="padding: 5px 15px;">
+                                            </v-select>
                                         </v-flex>
                                         <v-flex xs12 sm12 md6 lg6 xl6>
                                             <v-textarea name="input-7-1"
@@ -183,16 +204,6 @@
                                                         rows="2"
                                                         style="padding: 5px 15px;"
                                                         counter maxlength="1000">
-                                            </v-textarea>
-                                        </v-flex>
-                                        <v-flex xs12 sm12 md6 lg6 xl6>
-                                            <v-textarea name="input-7-1"
-                                                        v-model="caseObject.probable_destinations" box
-                                                        label="Probable destinations"
-                                                        placeholder="Probable destinations..." auto-grow
-                                                        rows="2"
-                                                        style="padding: 5px 15px;"
-                                                        counter maxlength="5000">
                                             </v-textarea>
                                         </v-flex>
                                         <v-flex xs12 sm12 md3 lg3 xl3>
@@ -276,16 +287,12 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_country"
+                                <v-text-field v-model="caseObject.home_country"
                                               label="Home country"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_city" label="Home city"
-                                              class="textField"></v-text-field>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.home_address"
+                                <v-text-field v-model="caseObject.home_address"
                                               label="Home address"
                                               class="textField"></v-text-field>
                             </v-flex>
@@ -294,46 +301,40 @@
                                         :nudge-right="40" lazy
                                         transition="scale-transition" offset-y full-width min-width="290px">
                                     <template v-slot:activator="{ on }">
-                                        <v-text-field v-model="caseObject.demographic_data.arrival_at_facility_date"
+                                        <v-text-field v-model="caseObject.arrival_at_facility_date"
                                                       label="Arrival at facility"
                                                       prepend-icon="event" readonly v-on="on"
                                                       style="padding: 5px 15px;"
                                                       clearable placeholder="If the child has been in a facility">
                                         </v-text-field>
                                     </template>
-                                    <v-date-picker v-model="caseObject.demographic_data.arrival_at_facility_date"
+                                    <v-date-picker v-model="caseObject.arrival_at_facility_date"
                                                    @input="arrivalAtFacilityMenu = false">
                                     </v-date-picker>
                                 </v-menu>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.birth_country"
+                                <v-text-field v-model="caseObject.birth_country"
                                               label="Birth country"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.birth_city" label="Birth city"
+                                <v-text-field v-model="caseObject.nationality" label="Nationality"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.demographic_data.nationality" label="Nationality"
+                                <v-text-field v-model="caseObject.religion" label="Religion"
                                               class="textField"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model="caseObject.psychological_data.religion" label="Religion"
-                                              class="textField"></v-text-field>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.demographic_data.languages_spoken"
+                                <v-text-field v-model.number="caseObject.languages_spoken"
                                               label="Languages spoken"
-                                              placeholder="Number of spoken languages"
-                                              type="number"
                                               style="padding: 5px 15px;">
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="educationOptions"
-                                          v-model="caseObject.demographic_data.education_level"
+                                          v-model="caseObject.education_level"
                                           label="Education level" placeholder="Choose the child's education level"
                                           item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
@@ -341,15 +342,8 @@
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="schoolGradesOptions"
-                                          v-model="caseObject.psychological_data.school_grades"
+                                          v-model="caseObject.school_grades"
                                           label="School grades" item-text="text" item-value="value"
-                                          style="padding: 5px 15px;">
-                                </v-select>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="schoolAbsencesOptions"
-                                          v-model="caseObject.psychological_data.school_absences"
-                                          label="School absences" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
@@ -365,51 +359,51 @@
                     <v-card-text>
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-text-field v-model="caseObject.physical_data.eye_color"
+                                <v-text-field v-model="caseObject.eye_color"
                                               label="Eye color"
                                               style="padding: 5px 15px;">
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-text-field v-model="caseObject.physical_data.hair_color"
+                                <v-text-field v-model="caseObject.hair_color"
                                               label="Hair color"
                                               style="padding: 5px 15px;">
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
-                                <v-select :items="skinColorOptions" v-model="caseObject.physical_data.skin_color"
+                                <v-select :items="skinColorOptions" v-model="caseObject.skin_color"
                                           label="Skin color" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.physical_data.height" label="Height"
+                                <v-text-field v-model.number="caseObject.height" label="Height"
                                               suffix="cm"
                                               style="padding: 5px 15px;" type="number" min="10" max="300"
                                               placeholder="Between 10 and 300">
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.physical_data.weight" label="Weight"
+                                <v-text-field v-model.number="caseObject.weight" label="Weight"
                                               suffix="kg"
                                               style="padding: 5px 15px;" type="number" min="5" max="200"
                                               placeholder="Between 5 and 200">
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="statureOptions" v-model="caseObject.physical_data.stature"
+                                <v-select :items="statureOptions" v-model="caseObject.stature"
                                           label="Stature" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="bodyOptions" v-model="caseObject.physical_data.body_type"
+                                <v-select :items="bodyOptions" v-model="caseObject.body_type"
                                           label="Body type" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
-                                <v-textarea name="input-7-1" v-model="caseObject.physical_data.characteristics" box
+                                <v-textarea name="input-7-1" v-model="caseObject.characteristics" box
                                             label="Characteristics"
                                             placeholder="Describe child's characteristics..." auto-grow rows="4"
                                             style="padding: 10px 15px;"
@@ -429,52 +423,52 @@
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="triggeredEventOptions"
-                                          v-model="caseObject.medical_data.triggered_event"
+                                          v-model="caseObject.triggered_event"
                                           label="Was there a trigger event?" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="concernOptions" v-model="caseObject.psychological_data.concerns"
+                                <v-select :items="concernOptions" v-model="caseObject.concerns"
                                           label="Family/Facility issues that may affect child" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="disappearanceReasonsOptions" v-model="caseObject.psychological_data.disappearance_reasons"
+                                <v-select :items="disappearanceReasonsOptions" v-model="caseObject.disappearance_reasons"
                                           label="General reasons of disappearance" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="personalityOptions"
-                                          v-model="caseObject.psychological_data.personality"
+                                <v-select :items="disorderOptions"
+                                          v-model="caseObject.mental_disorders"
                                           label="Mental/psychological disorders" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="familyOptions" v-model="caseObject.psychological_data.family"
+                                <v-select :items="livingEnvironmentOptions" v-model="caseObject.living_environment"
                                           label="Living Environment" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="parentsProfileOptions"
-                                          v-model="caseObject.psychological_data.parents_profile"
+                                          v-model="caseObject.parents_profile"
                                           label="Parent/Guardian with known issues (criminal, behavioural, etc)" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :items="relationshipOptions"
-                                          v-model="caseObject.psychological_data.relationship_status"
+                                          v-model="caseObject.relationship_status"
                                           label="Relationship" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-text-field v-model.number="caseObject.psychological_data.family_members"
+                                <v-text-field v-model.number="caseObject.family_members"
                                               label="Family members"
                                               type="number"
                                               hint="" persistent-hint
@@ -483,7 +477,7 @@
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
                                 <v-textarea name="input-7-1"
-                                            v-model="caseObject.psychological_data.hobbies" box
+                                            v-model="caseObject.hobbies" box
                                             label="Hobbies"
                                             placeholder="Describe child's hobbies..." auto-grow rows="4"
                                             style="padding: 10px 15px;"
@@ -503,28 +497,28 @@
                         <v-layout row wrap>
                             <v-flex xs12 sm12 md4 lg4 xl4>
                                 <v-select :items="addictionOptions"
-                                          v-model="caseObject.psychological_data.addiction"
+                                          v-model="caseObject.addiction"
                                           label="Drug user or other addiction" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
                                 <v-select :items="heathIssuesOptions"
-                                          v-model="caseObject.medical_data.health_issues"
+                                          v-model="caseObject.health_issues"
                                           label="Other health issues" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md4 lg4 xl4>
                                 <v-select :items="medicalTreatmentOptions"
-                                          v-model="caseObject.medical_data.medical_treatment_required"
+                                          v-model="caseObject.medical_treatment_required"
                                           label="Require treatment" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md12 lg12 xl12>
                                 <v-textarea name="input-7-1"
-                                            v-model="caseObject.medical_data.health_issues_description" box
+                                            v-model="caseObject.health_issues_description" box
                                             label="Description"
                                             placeholder="Describe child's health issues..." auto-grow rows="4"
                                             style="padding: 10px 15px;"
@@ -541,33 +535,39 @@
                         </div>
                     </v-card-title>
                     <v-card-text>
-                        <v-layout row wrap>
-                            <v-flex xs12 sm12 md12 lg12 xl12>
-                                <v-checkbox v-model="caseObject.social_media_data.has_social_profiles"
-                                            label="Has social profiles" style="padding: 10px 15px;"></v-checkbox>
+                        <v-layout v-for="socialMediaItem in socialMedia" :key="socialMediaItem.medium" row wrap>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-chip outline label>
+                                    <v-icon left>label</v-icon>{{ socialMediaItem.medium }}
+                                </v-chip>
                             </v-flex>
-                            <v-flex xs12 sm12 md12 lg12 xl12>
-                                <v-textarea name="input-7-1"
-                                            v-model="caseObject.social_media_data.description" box
-                                            label="Social media info"
-                                            placeholder="Describe child's social media activity..." auto-grow
-                                            rows="4"
-                                            style="padding: 10px 15px;"
-                                            counter maxlength="5000">
-                                </v-textarea>
+                            <v-flex xs12 sm12 md3>
+                                <v-select :items="publishedPhotosOptions"
+                                          v-model="socialMediaItem.published_photos"
+                                          label="Published Photos" item-text="text" item-value="value" class="noPadding mx-2">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
+                                <v-select :items="followersOptions"
+                                          v-model="socialMediaItem.followers"
+                                          label="Followers" item-text="text" item-value="value" class="noPadding mx-2">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
+                                <v-select :items="recentActivityOptions"
+                                          v-model="socialMediaItem.recent_activity"
+                                          label="Recent Activity" item-text="text" item-value="value" class="noPadding mx-2">
+                                </v-select>
                             </v-flex>
                         </v-layout>
                     </v-card-text>
                 </v-card>
-                <v-btn color="primary" @click="save()">Save</v-btn>
-                <v-btn flat @click="cancel()">Cancel</v-btn>
             </v-flex>
         </v-layout>
     </div>
 </template>
 
 <script>
-import * as R from 'ramda';
 import { mapGetters } from 'vuex';
 import { bus } from '../../main';
 import { UsersApi, CasesApi, FeedbacksApi } from '@/api';
@@ -578,18 +578,53 @@ export default {
         DateTimePicker,
     },
     props: {
-        caseObject: {
+        childId: {
+            type: Number,
+            default: null,
+        },
+        caseObjectProp: {
             type: Object,
-            required: true,
+            default: null,
         },
     },
     data() {
         return {
+            caseObject: {},
+            isLoaded: false,
             userObject: {},
-            center: {
-                lat: 45.508,
-                lng: -73.587,
-            },
+            socialMedia: [
+                {
+                    medium: 'Facebook',
+                    published_photos: null,
+                    followers: null,
+                    recent_activity: null,
+                },
+                {
+                    medium: 'Instagram',
+                    published_photos: null,
+                    followers: null,
+                    recent_activity: null,
+                },
+                {
+                    medium: 'Snapchat',
+                    published_photos: null,
+                    followers: null,
+                    recent_activity: null,
+                },
+                {
+                    medium: 'Dating app',
+                    published_photos: null,
+                    followers: null,
+                    recent_activity: null,
+                },
+                {
+                    medium: 'Other',
+                    published_photos: null,
+                    followers: null,
+                    recent_activity: null,
+                },
+            ],
+            center: { lat: 45.508, lng: -73.587 },
             markers: [],
             places: [],
             currentPlace: null,
@@ -705,6 +740,20 @@ export default {
                 {
                     text: 'Female',
                     value: 'female',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            isRefugeeOptions: [
+                {
+                    text: 'Yes',
+                    value: 'yes',
+                },
+                {
+                    text: 'No',
+                    value: 'no',
                 },
                 {
                     text: 'Unknown',
@@ -909,7 +958,7 @@ export default {
                     value: null,
                 },
             ],
-            personalityOptions: [
+            disorderOptions: [
                 {
                     text: 'Mild',
                     value: 'mild',
@@ -945,7 +994,7 @@ export default {
                     value: null,
                 },
             ],
-            familyOptions: [
+            livingEnvironmentOptions: [
                 {
                     text: 'Living with 1 biological parent ',
                     value: 'single_bio_parent',
@@ -1027,28 +1076,6 @@ export default {
                     value: null,
                 },
             ],
-            schoolAbsencesOptions: [
-                {
-                    text: 'Low',
-                    value: 'low',
-                },
-                {
-                    text: 'Medium',
-                    value: 'medium',
-                },
-                {
-                    text: 'High',
-                    value: 'high',
-                },
-                {
-                    text: 'None',
-                    value: 'none',
-                },
-                {
-                    text: 'Unknown',
-                    value: null,
-                },
-            ],
             relationshipOptions: [
                 {
                     text: 'Single',
@@ -1071,6 +1098,122 @@ export default {
                     value: null,
                 },
             ],
+            publishedPhotosOptions: [
+                {
+                    text: 'Yes',
+                    value: 'yes',
+                },
+                {
+                    text: 'No',
+                    value: 'no',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            followersOptions: [
+                {
+                    text: 'Low < 50',
+                    value: 'low',
+                },
+                {
+                    text: 'Medium < 500',
+                    value: 'medium',
+                },
+                {
+                    text: 'High < 3000',
+                    value: 'high',
+                },
+                {
+                    text: 'Influencer < 10000',
+                    value: 'influencer',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            recentActivityOptions: [
+                {
+                    text: 'Daily',
+                    value: 'daily',
+                },
+                {
+                    text: 'Frequently',
+                    value: 'frequently',
+                },
+                {
+                    text: 'Infrequent',
+                    value: 'infrequent',
+                },
+                {
+                    text: 'Inactive',
+                    value: 'inactive',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            booleanOptions: [
+                {
+                    text: 'Yes',
+                    value: 'yes',
+                },
+                {
+                    text: 'No',
+                    value: 'no',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            mobileOptions: [
+                {
+                    text: 'Yes',
+                    value: 'yes',
+                },
+                {
+                    text: 'Yes but deactivated or otherwise untrackable',
+                    value: 'deactivated',
+                },
+                {
+                    text: 'Yes the abductor',
+                    value: 'abductor',
+                },
+                {
+                    text: 'No',
+                    value: 'no',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
+            moneyOptions: [
+                {
+                    text: 'Yes',
+                    value: 'yes',
+                },
+                {
+                    text: 'Probably Yes',
+                    value: 'probably_yes',
+                },
+                {
+                    text: 'Probably No',
+                    value: 'probably_no',
+                },
+                {
+                    text: 'No',
+                    value: 'no',
+                },
+                {
+                    text: 'Unknown',
+                    value: null,
+                },
+            ],
             foundDateModal: false,
             imageData: null,
             cropImg: '',
@@ -1080,18 +1223,6 @@ export default {
             dialogCaseModal: false,
             genderItems: ['unknown', 'male', 'female'],
             caseStatus: ['active', 'closed'],
-            linkItems: [
-                {
-                    text: 'Home',
-                    disabled: false,
-                    href: '/',
-                },
-                {
-                    text: 'Cases',
-                    disabled: false,
-                    href: '/cases',
-                },
-            ],
         };
     },
     computed: {
@@ -1111,7 +1242,7 @@ export default {
         },
         getChildImageName: {
             get() {
-                if (this.caseObject.profile_photo === '' || this.caseObject.profile_photo === null) {
+                if (this.caseObject.profile_photo === '' || this.caseObject.profile_photo === null || this.caseObject.profile_photo === undefined) {
                     this.getChildImageNameValue = null;
                 } else if (this.caseObject.profile_photo instanceof FormData) {
                     this.getChildImageNameValue = this.imageName;
@@ -1128,32 +1259,47 @@ export default {
     async created() {
         const { data: userObject } = await UsersApi.get();
         this.userObject = userObject;
-
+        this.caseObject = this.caseObjectProp;
         if (!this.caseObject) {
-            this.caseObject = R.clone(this.getCaseStructure);
+            if (this.$route.params.id) {
+                const { data: caseObject } = await CasesApi.get(this.$route.params.id);
+                this.caseObject = caseObject;
+                const { data: socialMedia } = await CasesApi.getSocialMedia({ case_id: this.$route.params.id });
+                this.socialMedia = socialMedia;
+            } else {
+                this.caseObject = {
+                    social_media_data: {},
+                };
+            }
             this.caseObject.organization = this.userObject.organization;
+        } else {
+            const { data: socialMedia } = await CasesApi.getSocialMedia({ case_id: this.$route.params.id });
+            this.socialMedia = socialMedia;
         }
         this.imageName = this.caseObject.profile_photo;
         this.editMode = this.caseObject.id && this.caseObject.id !== null;
-        if (this.editMode) {
-            this.linkItems.push({
-                text: `case: ${this.caseObject.id}`,
-                disabled: true,
-            });
-        } else {
-            this.linkItems.push({
-                text: 'New case',
-                disabled: true,
-            });
+        if (this.childId !== null) {
+            await this.getChild();
         }
+        this.isLoaded = true;
     },
     methods: {
+        async getChild() {
+            const { data: childObject } = await CasesApi.getChild(this.childId);
+            this.caseObject.first_name = childObject.first_name;
+            this.caseObject.last_name = childObject.last_name;
+            this.caseObject.father_fullname = childObject.father_fullname;
+            this.caseObject.mother_fullname = childObject.mother_fullname;
+            this.caseObject.date_of_birth = childObject.date_of_birth;
+            this.caseObject.gender = childObject.gender;
+            this.caseObject.phone = childObject.phone;
+        },
         validateForm() {
             if (!this.editMode) {
-                this.isFormValid = !!(this.caseObject.personal_data.first_name && this.caseObject.personal_data.last_name && this.feedbackObject.address && this.feedbackObject.latitude && this.feedbackObject.longitude
+                this.isFormValid = !!(this.caseObject.first_name && this.caseObject.last_name && this.caseObject.custom_name && this.feedbackObject.address && this.feedbackObject.latitude && this.feedbackObject.longitude
                     && this.feedbackObject.date);
             } else {
-                this.isFormValid = !!(this.caseObject.personal_data.first_name && this.caseObject.personal_data.last_name);
+                this.isFormValid = !!(this.caseObject.first_name && this.caseObject.last_name && this.caseObject.custom_name);
             }
         },
         setPlace(place) {
@@ -1228,15 +1374,26 @@ export default {
                         const { data: caseImageObject } = await CasesApi.updateImage(this.caseObject.id, this.caseObject.profile_photo, headers);
                     }
                     const caseId = this.caseObject.id;
+                    this.socialMedia.forEach(async (value) => {
+                        await CasesApi.updateSocialMedia(value);
+                    });
                     this.clearForm();
                     this.$router.push({ name: 'case', params: { id: caseId } });
                 } else {
+                    if (this.childId !== null) {
+                        this.caseObject.child_id = this.childId;
+                    }
                     const { data: caseObject } = await CasesApi.create(this.getFormattedCreatedCase(this.caseObject));
                     if (this.caseObject.profile_photo instanceof FormData) {
                         const headers = { 'Content-Type': 'multipart/form-data' };
                         const { data: caseImageObject } = await CasesApi.updateImage(caseObject.id, this.caseObject.profile_photo, headers);
                     }
                     this.createFeedback(caseObject.id);
+
+                    this.socialMedia.forEach(async (value) => {
+                        value.case = caseObject.id;
+                        await CasesApi.createSocialMedia(value);
+                    });
                     this.clearForm();
                     this.$router.push({ name: 'cases' });
                 }
@@ -1258,12 +1415,13 @@ export default {
             this.feedbackObject.case = caseId;
             this.feedbackObject.feedback_status = 'credible';
             this.feedbackObject.source = `${this.userObject.last_name} ${this.userObject.first_name}`;
-            // this.feedbackObject.source = '-';
             const { data: feedbackObject } = await FeedbacksApi.create(this.feedbackObject);
             bus.$emit('reload-feedbacks-event');
         },
         clearForm() {
-            this.caseObject = R.clone(this.getCaseStructure);
+            this.caseObject = {
+                social_media_data: {},
+            };
             this.feedbackObject = {
                 child_status: null,
                 transportation: null,
@@ -1274,6 +1432,10 @@ export default {
 </script>
 
 <style scoped>
+
+    .noPadding {
+        padding: 0px 0px 0px 0px;
+    }
     .textField {
         padding: 5px 15px;
     }

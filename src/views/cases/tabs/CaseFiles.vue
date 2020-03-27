@@ -3,7 +3,7 @@
         <v-card flat v-if="isLoaded">
             <v-toolbar dense flat color="white">
                 <v-spacer></v-spacer>
-                <v-btn @click="openAddFileDialog()" color="primary" dark>Add file</v-btn>
+                <v-btn v-if="caseObject.status==='active' || caseObject.status==='inactive'" @click="openAddFileDialog()" color="primary" dark>Add file</v-btn>
             </v-toolbar>
             <v-layout v-if="files.length > 0" fill-height row wrap>
                 <v-flex v-for="(item) in files" :key="item.id" xs12 sm6 md3 lg3 xl2>
