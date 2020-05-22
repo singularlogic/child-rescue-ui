@@ -1,18 +1,11 @@
 import { secured } from "../plugins/axios";
 
-const resource = "/metrics";
+const resource = "/alerts/web_admin_api";
 
 export default {
-    getUserMetrics: params =>
-        secured.get(`${resource}/user-metrics/`, { params }),
-    getCommunityMetrics: params =>
-        secured.get(`${resource}/community-metrics/`, { params }),
-    getPerformanceMetrics: params =>
-        secured.get(`${resource}/user-performance/`, { params }),
-    getPeerComparisonMetrics: params =>
-        secured.get(`${resource}/peer-comparison/`, { params }),
-    getHistoryMetrics: params =>
-        secured.get(`${resource}/user-history/`, { params }),
-    getDevicePerformanceMetrics: params =>
-        secured.get(`${resource}/device-history/`, { params })
+    all: params => secured.get(`${resource}/`, { params }),
+    latest: () => secured.get(`${resource}/latest/`),
+    create: payload => secured.post(`${resource}/`, payload),
+    edit: payload => secured.patch(`${resource}/${payload.id}/`, payload),
+    deactivate: id => secured.post(`${resource}/${id}/deactivate/`)
 };

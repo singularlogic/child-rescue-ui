@@ -123,8 +123,8 @@ export default {
         this.caseId = this.$route.params.id;
         await this.loadAlerts();
         bus.$off('reload-alerts-event');
-        bus.$on('reload-alerts-event', () => {
-            this.loadAlerts();
+        bus.$on('reload-alerts-event', async () => {
+            await this.loadAlerts();
         });
         const { data: caseObject } = await CasesApi.get(this.caseId);
         this.caseObject = caseObject;
@@ -132,6 +132,8 @@ export default {
     },
     methods: {
         async loadAlerts() {
+            console.log('Aa');
+            console.log(this.caseId);
             const { data: alerts } = await AlertsApi.all({ caseId: this.caseId });
             this.alerts = alerts;
         },

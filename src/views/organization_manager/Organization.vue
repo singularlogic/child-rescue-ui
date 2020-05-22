@@ -23,7 +23,7 @@
                             </v-avatar>
                             <input ref="image" type="file" style="display: none" accept="image/*" @change="setImage"/>
                             <div v-if="isViewMode" class="display-1 pl-2">{{ organization.name }}</div>
-                            <v-text-field class="display-0 pl-2" dark v-if="!isViewMode" ref="nameField" v-model="organization.name" hint="Organization name" persistent-hint></v-text-field>
+                            <v-text-field class="display-0 pl-2" dark v-if="!isViewMode" ref="nameField" v-model="organization.name" :hint="$t('organization.name_label')" persistent-hint></v-text-field>
                         </v-card-title>
                     </v-layout>
                 </v-img>
@@ -34,9 +34,9 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.phone }}</v-list-tile-title>
-                            <v-list-tile-sub-title>Phone number</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.phone') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.phone" hint="Phone number" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.phone" :hint="$t('organization.phone_hint')" persistent-hint></v-text-field>
                         <v-list-tile-action v-if="isViewMode">
                             <!-- <v-icon>chat</v-icon> -->
                         </v-list-tile-action>
@@ -47,9 +47,9 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.email }}</v-list-tile-title>
-                            <v-list-tile-sub-title>Email</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.email') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.email" hint="Email" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.email" :hint="$t('organization.email_hint')" persistent-hint></v-text-field>
                     </v-list-tile>
                     <v-list-tile @click="">
                         <v-list-tile-action>
@@ -57,9 +57,9 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.address }}</v-list-tile-title>
-                            <v-list-tile-sub-title>Address</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.address') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.address" hint="Address" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.address" :hint="$t('organization.address_hint')" persistent-hint></v-text-field>
                     </v-list-tile>
                     <v-divider v-if="isViewMode" inset></v-divider>
                     <v-list-tile @click="">
@@ -97,13 +97,13 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.how_to_become_volunteer }}</v-list-tile-title>
-                            <v-list-tile-sub-title>How to become a volunteer</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.how_to') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
                         <v-textarea
                             v-if="!isViewMode"
                             v-model="organization.how_to_become_volunteer"
                             rows="1" row-height="30px"
-                            hint="How to become a volunteer"
+                            :hint="$t('organization.how_to_hint')"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                     <v-list-tile @click="">
@@ -111,13 +111,13 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.description }}</v-list-tile-title>
-                            <v-list-tile-sub-title>Description</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.description') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
                         <v-textarea
                             v-if="!isViewMode"
                             v-model="organization.description"
                             rows="1" row-height="30px"
-                            hint="Description"
+                            :hint="$t('organization.description')"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                     <v-list-tile @click="">
@@ -125,13 +125,13 @@
                         </v-list-tile-action>
                         <v-list-tile-content v-if="isViewMode">
                             <v-list-tile-title>{{ organization.missing_child_actions }}</v-list-tile-title>
-                            <v-list-tile-sub-title>Missing child actions</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{ $t('organization.missing_child') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
                         <v-textarea
                             v-if="!isViewMode"
                             v-model="organization.missing_child_actions"
                             rows="1" row-height="30px"
-                            hint="Missing child actions"
+                            :hint="$t('organization.missing_achild_hint')"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                 </v-list>
@@ -198,7 +198,7 @@ export default {
             }
             bus.$emit('reload-layout-event');
             this.toggleMode();
-            this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Organization updated successfully!', color: 'primary' });
+            this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('organization.success_update'), color: 'primary' });
         },
         cancel() {
             this.loadOrganization();

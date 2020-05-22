@@ -7,10 +7,10 @@
                         <v-btn :href="href" @click="navigate" icon><v-icon>arrow_back</v-icon></v-btn>
                     </router-link>
                     <div>
-                        <div class="title">User details</div>
+                        <div class="title">{{ $t('user.details') }}</div>
                     </div>
                     <v-spacer></v-spacer>
-                    <v-btn @click="editView()" color="primary"><v-icon left>edit</v-icon>Edit</v-btn>
+                    <v-btn @click="editView()" color="primary"><v-icon left>edit</v-icon>{{ $t('user.edit') }}</v-btn>
                 </v-toolbar>
                 <v-card-text>
                     <v-form ref="userForm" v-model="valid" lazy-validation>
@@ -22,13 +22,13 @@
                                 <v-layout v-if="user.role!=='volunteer'">
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Role</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.role') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ (user.role || '') | customTitle('_') }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Facility</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.facility') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ user.facility_name || ' - ' | title }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -36,7 +36,7 @@
                                 <v-layout v-else>
                                     <v-flex xs12 sm12 md12 lg12 xl12>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Role</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.role') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ (user.role || '') | customTitle('_') }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -56,7 +56,7 @@
                                     </v-flex>
                                     <v-flex>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Phone</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.phone') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ (user.phone || 'XXXXXXXXXX') | phoneFormat() }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -70,13 +70,13 @@
                                 <v-layout>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>First name</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.first_name') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ user.first_name || '' | title }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
                                     <v-flex>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Last name</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('user.last_name') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ user.last_name || '' | title }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -88,7 +88,7 @@
                                     <v-icon color="primary">location_city</v-icon>
                                 </v-list-tile-action>
                                 <v-list-tile-content>
-                                    <v-list-tile-sub-title>City</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>{{ $t('user.city') }}</v-list-tile-sub-title>
                                     <v-list-tile-title>{{ user.city || ' - ' }}</v-list-tile-title>
                                 </v-list-tile-content>
                             </v-list-tile>
@@ -98,7 +98,7 @@
                                     <v-icon color="primary">pin_drop</v-icon>
                                 </v-list-tile-action>
                                 <v-list-tile-content>
-                                    <v-list-tile-sub-title>Address</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>{{ $t('user.address') }}</v-list-tile-sub-title>
                                     <v-list-tile-title>{{ user.address || ' - ' }}</v-list-tile-title>
                                 </v-list-tile-content>
                             </v-list-tile>
@@ -118,7 +118,7 @@
                                     <v-icon color="primary">description</v-icon>
                                 </v-list-tile-action>
                                 <v-list-tile-content>
-                                    <v-list-tile-sub-title>Description</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>{{ $t('user.description') }}</v-list-tile-sub-title>
                                     <v-list-tile-title>{{ user.description || ' - ' }}</v-list-tile-title>
                                 </v-list-tile-content>
                             </v-list-tile>
@@ -157,7 +157,10 @@ export default {
             places: [],
             currentPlace: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             place: null,
         };

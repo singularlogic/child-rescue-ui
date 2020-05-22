@@ -3,10 +3,10 @@
         <v-flex xs12>
             <v-card >
                 <v-toolbar flat color="white">
-                    <v-toolbar-title>Organization Users</v-toolbar-title>
+                    <v-toolbar-title>{{ $t('user.organization_users') }}</v-toolbar-title>
                     <v-spacer></v-spacer>
                     <router-link to="/users/new/" v-slot="{ href, route, navigate}">
-                        <v-btn :href="href" @click="navigate" color="primary" dark>Add User</v-btn>
+                        <v-btn :href="href" @click="navigate" color="primary" dark>{{ $t('user.add_user') }}</v-btn>
                     </router-link>
                 </v-toolbar>
                 <v-data-table :headers="headers" :items="users" :search="search" :pagination.sync="pagination">
@@ -49,7 +49,7 @@
                         </tr>
                     </template>
                     <v-alert v-slot:no-results :value="true" color="error" icon="warning">
-                        Your search for "{{ search }}" found no results.
+                        {{ $t('user.no_results') }}
                     </v-alert>
                 </v-data-table>
             </v-card>
@@ -84,37 +84,37 @@ export default {
                     width: '10%',
                 },
                 {
-                    text: 'Role',
+                    text: this.$t('user.role'),
                     value: 'role',
                     sortable: true,
                     width: '10%',
                 },
                 {
-                    text: 'City',
+                    text: this.$t('user.city'),
                     value: 'city',
                     sortable: true,
                     width: '15%',
                 },
                 {
-                    text: 'First name',
+                    text: this.$t('user.first_name'),
                     value: 'first_name',
                     sortable: true,
                     width: '10%',
                 },
                 {
-                    text: 'Last name',
+                    text: this.$t('user.last_name'),
                     value: 'last_name',
                     sortable: true,
                     width: '10%',
                 },
                 {
-                    text: 'Facility',
+                    text: this.$t('user.facility'),
                     value: 'facility_name',
                     sortable: true,
                     width: '10%',
                 },
                 {
-                    text: 'Is hosting',
+                    text: this.$t('user.is_hosting'),
                     value: 'is_hosting_facility',
                     align: 'center',
                     sortable: true,
@@ -123,7 +123,7 @@ export default {
                 {
                     align: 'center',
                     sortable: false,
-                    text: 'Actions',
+                    text: this.$t('user.actions'),
                     value: 'name',
                     width: '5%',
                 },
@@ -155,7 +155,7 @@ export default {
         async toggleActivation(item) {
             item.is_active = !item.is_active;
             const { data: userObject } = await UsersApi.updateUser(item);
-            this.$store.commit(SET_SNACKBAR_STATUS, { message: 'User updated successfully!', color: 'primary' });
+            this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('user.update_success'), color: 'primary' });
         },
     },
 };

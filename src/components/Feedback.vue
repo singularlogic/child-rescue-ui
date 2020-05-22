@@ -62,7 +62,7 @@
                         </v-flex>
                         <v-flex v-if="feedbackObject.feedback_image" xs12 class="my-2 mx-2" ref="content_image">
                             <div ref="feedbackImage">
-                                <v-img :src="feedbackObject.feedback_image" height="350px"/>
+                                <a :href="feedbackObject.feedback_image" target="_blank"><v-img :src="feedbackObject.feedback_image" height="350px"/></a>
                             </div>
                         </v-flex>
                         <v-flex xs12 sm12 md6>
@@ -133,7 +133,10 @@ export default {
             currentPlace: null,
             autocomplete: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             isViewMode: false,
             isEditMode: false,

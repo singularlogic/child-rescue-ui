@@ -6,9 +6,9 @@
                     <router-link to="/facilities/" v-slot="{ href, route, navigate}">
                         <v-btn :href="href" @click="navigate" icon><v-icon>arrow_back</v-icon></v-btn>
                     </router-link>
-                    <div class="title">Facility details</div>
+                    <div class="title">{{ $t('facility.details') }}</div>
                     <v-spacer></v-spacer>
-                    <v-btn @click="editView()" color="primary"><v-icon left>edit</v-icon>Edit</v-btn>
+                    <v-btn @click="editView()" color="primary"><v-icon left>edit</v-icon>{{ $t('facility.edit') }}</v-btn>
                 </v-toolbar>
                 <v-card-text>
                     <v-form ref="facilityForm" v-model="valid" lazy-validation>
@@ -20,7 +20,7 @@
                                 <v-layout>
                                     <v-flex xs12 sm12 md12 lg12 xl12>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Facility</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.facility') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ facility.name | title }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -34,13 +34,13 @@
                                 <v-layout>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Email</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.email') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ facility.email || ' - ' }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
                                     <v-flex>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Phone</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.phone') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ (facility.phone || 'XXXXXXXXXX') | phoneFormat() }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -54,13 +54,13 @@
                                 <v-layout v-if="facility.supports_hosting">
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Is hosting</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.is_hosting') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ String(facility.supports_hosting) | title }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
                                     <v-flex>
                                         <v-list-tile-content>
-                                            <v-list-tile-sub-title>Capacity</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.capacity') }}</v-list-tile-sub-title>
                                             <v-list-tile-title>{{ facility.capacity }}</v-list-tile-title>
                                         </v-list-tile-content>
                                     </v-flex>
@@ -69,7 +69,7 @@
                                     <v-flex xs12 sm12 md12 lg12 xl12>
                                         <v-list-tile-content>
                                             <v-list-tile-title>{{ String(facility.supports_hosting) | title }}</v-list-tile-title>
-                                            <v-list-tile-sub-title>Is hosting</v-list-tile-sub-title>
+                                            <v-list-tile-sub-title>{{ $t('facility.is_hosting') }}</v-list-tile-sub-title>
                                         </v-list-tile-content>
                                     </v-flex>
                                 </v-layout>
@@ -80,7 +80,7 @@
                                     <v-icon color="primary">pin_drop</v-icon>
                                 </v-list-tile-action>
                                 <v-list-tile-content>
-                                    <v-list-tile-sub-title>Address</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>{{ $t('facility.address') }}</v-list-tile-sub-title>
                                     <v-list-tile-title>{{ facility.address || ' - ' }}</v-list-tile-title>
                                 </v-list-tile-content>
                             </v-list-tile>
@@ -129,7 +129,10 @@ export default {
             places: [],
             currentPlace: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             place: null,
         };

@@ -5,19 +5,19 @@
                 <v-toolbar color="white" flat>
                     <v-icon>edit</v-icon>
                     <div class="mx-2">
-                        <div class="title">Edit user</div>
-                        <div class="caption grey--text">* fields are required</div>
+                        <div class="title">{{ $t('user.edit_user') }}</div>
+                        <div class="caption grey--text">{{ $t('user.required_fields') }}</div>
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn v-if="id" @click="presentView()" color="" dark>
-                        <span>Cancel</span>
+                        <span>{{ $t('user.cancel') }}</span>
                     </v-btn>
                     <v-btn v-else @click="presentListView()" color="" dark>
-                        <span>Cancel</span>
+                        <span>{{ $t('user.cancel') }}</span>
                     </v-btn>
                     <v-btn @click="validate()" color="primary" dark>
-                        <span v-if="id">Update</span>
-                        <span v-else>Save</span>
+                        <span v-if="id">{{ $t('user.update') }}</span>
+                        <span v-else>{{ $t('user.save') }}</span>
                     </v-btn>
                 </v-toolbar>
                 <v-card-text>
@@ -30,19 +30,19 @@
                                 <v-layout v-if="user.role!=='volunteer'">
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-select :items="roleOptions" v-model="user.role" :rules="[rules.required]"
-                                                  label="* Role" item-text="text" item-value="value" hint="Select the user role."
+                                                  :label="$t('user.star_role')" item-text="text" item-value="value" :hint="$t('user.select_role')"
                                                   style="margin-right:5px;">
                                         </v-select>
                                     </v-flex>
                                     <v-flex xs12 sm6 v-if="user.role!=='facility_manager'">
                                         <v-select :items="organizationFacilities" v-model="user.facility" :rules="[rules.required]"
-                                                  label="* Facility" :item-text="facilityTemplate" item-value="id" hint="Choose a facility for the user."
+                                                  :label="$t('user.star_facility')" :item-text="facilityTemplate" item-value="id" :hint="$t('user.facility_hint')"
                                                   style="margin-left:5px;">
                                         </v-select>
                                     </v-flex>
                                     <v-flex xs12 sm6 v-else>
                                         <v-select :items="organizationHostingFacilities" v-model="user.facility" :rules="[rules.required]"
-                                                  label="* Facility" :item-text="facilityTemplate" item-value="id" hint="Choose a hosting facility for the user."
+                                                  :label="$t('user.star_facility')" :item-text="facilityTemplate" item-value="id" :hint="$t('user.hosting_facility_hint')"
                                                   style="margin-left:5px;">
                                         </v-select>
                                     </v-flex>
@@ -50,7 +50,7 @@
                                 <v-layout v-else>
                                     <v-flex xs12 sm12 md12 lg12 xl12>
                                         <v-select :items="roleOptions" v-model="user.role" :rules="[rules.required]"
-                                                  label="* Role" item-text="text" item-value="value" hint="Select the user role."
+                                                  :label="$t('user.star_role')" item-text="text" item-value="value" :hint="$t('user.role_hint')"
                                                   style="margin-right:5px;">
                                         </v-select>
                                     </v-flex>
@@ -62,10 +62,10 @@
                                 </v-list-tile-action>
                                 <v-layout>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
-                                        <v-text-field style="margin-right: 5px;" v-if="!isViewMode" clearable v-model="user.email" label="* Email" :rules="[rules.required, rules.email]"></v-text-field>
+                                        <v-text-field style="margin-right: 5px;" v-if="!isViewMode" clearable v-model="user.email" :label="$t('user.star_email')" :rules="[rules.required, rules.email]"></v-text-field>
                                     </v-flex>
                                     <v-flex>
-                                        <v-text-field style="margin-left: 5px;" v-if="!isViewMode" clearable v-model="user.phone" mask="phone" placeholder="(XXX) XXX XXXX" label="Phone" :rules="[rules.phone]"></v-text-field>
+                                        <v-text-field style="margin-left: 5px;" v-if="!isViewMode" clearable v-model="user.phone" mask="phone" placeholder="(XXX) XXX XXXX" :label="$t('user.phone')" :rules="[rules.phone]"></v-text-field>
                                     </v-flex>
                                 </v-layout>
                             </v-list-tile>
@@ -75,10 +75,10 @@
                                 </v-list-tile-action>
                                 <v-layout>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
-                                        <v-text-field style="margin-right: 5px;" type="password" v-if="!isViewMode" clearable v-model="user.password" label="* Password" :rules="[rules.required, rules.password]" counter></v-text-field>
+                                        <v-text-field style="margin-right: 5px;" type="password" v-if="!isViewMode" clearable v-model="user.password" :label="$t('user.star_password')" :rules="[rules.required, rules.password]" counter></v-text-field>
                                     </v-flex>
                                     <v-flex>
-                                        <v-text-field style="margin-left: 5px;" type="password" v-if="!isViewMode" clearable v-model="repeatPassword" label="* Repeat password" :rules="[rules.required, rules.repeatPassword]"></v-text-field>
+                                        <v-text-field style="margin-left: 5px;" type="password" v-if="!isViewMode" clearable v-model="repeatPassword" :label="$t('user.star_repeat_password')" :rules="[rules.required, rules.repeatPassword]"></v-text-field>
                                     </v-flex>
                                 </v-layout>
                             </v-list-tile>
@@ -88,10 +88,10 @@
                                 </v-list-tile-action>
                                 <v-layout>
                                     <v-flex xs12 sm6 md6 lg6 xl6>
-                                        <v-text-field style="margin-right: 5px;" v-if="!isViewMode" clearable v-model="user.first_name" label="* First name" :rules="[rules.required, rules.name]" counter></v-text-field>
+                                        <v-text-field style="margin-right: 5px;" v-if="!isViewMode" clearable v-model="user.first_name" :label="$t('user.star_first_name')" :rules="[rules.required, rules.name]" counter></v-text-field>
                                     </v-flex>
                                     <v-flex>
-                                        <v-text-field style="margin-left: 5px;" v-if="!isViewMode" clearable v-model="user.last_name" label="* Last name" :rules="[rules.required, rules.name]" counter></v-text-field>
+                                        <v-text-field style="margin-left: 5px;" v-if="!isViewMode" clearable v-model="user.last_name" :label="$t('user.star_last_name')" :rules="[rules.required, rules.name]" counter></v-text-field>
                                     </v-flex>
                                 </v-layout>
                             </v-list-tile>
@@ -102,8 +102,8 @@
                                 <v-text-field
                                     ref="cityField"
                                     v-model="user.city"
-                                    label="City"
-                                    hint="Type the city"
+                                    :label="$t('user.city')"
+                                    :hint="$t('user.city_hint')"
                                     persistent-hint></v-text-field>
                             </v-list-tile>
                             <v-list-tile>
@@ -113,11 +113,11 @@
                                 <v-text-field
                                     ref="addressField"
                                     v-model="place"
-                                    label="Address"
-                                    hint="Type the address and then hit enter"
+                                    :label="$t('user.address')"
+                                    :hint="$t('userr.address_hint')"
                                     persistent-hint
                                     @keyup.enter.native="triggerPlaceChangeEvent(place)"></v-text-field>
-                                <v-btn dark outline color="primary" style="margin-top: 0px;" @click="triggerPlaceChangeEvent(place)">Find address</v-btn>
+                                <v-btn dark outline color="primary" style="margin-top: 0px;" @click="triggerPlaceChangeEvent(place)">{{ $t('user.find_address') }}</v-btn>
                             </v-list-tile>
                         </v-list>
                         <v-layout row>
@@ -139,7 +139,7 @@
                                     v-if="!isViewMode"
                                     v-model="user.description"
                                     counter
-                                    label="Description"
+                                    :label="$t('user.description')"
                                     rows="2" row-height="30px"
                                     no-resize></v-textarea>
                             </v-list-tile>
@@ -181,18 +181,21 @@ export default {
             places: [],
             currentPlace: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             place: null,
             rules: {
-                required: value => !!value || 'Field is required',
-                city: value => (value && value.length > 2 && value.length < 250) || 'City must be between 5 and 50 characters',
-                address: value => (value && value.length > 5 && value.length < 250) || 'Address must be between 5 and 50 characters',
-                name: value => (value && value.length >= 3 && value.length <= 20) || 'Field must be between 3 and 20 characters',
-                phone: value => ((value && value.length === 10) || (!value)) || 'Phone must have 10 characters',
-                email: value => (value && /.+@.+/.test(value)) || 'E-mail must be valid',
-                password: value => (value && value.length >= 6 && value.length <= 20) || 'Password must be between 6 and 20 characters',
-                repeatPassword: value => (value && value === this.user.password) || 'Passwords must match!',
+                required: value => !!value || this.$t('user.rules_required'),
+                city: value => (value && value.length > 5 && value.length < 50) || this.$t('user.rules_city'),
+                address: value => (value && value.length > 5 && value.length < 120) || this.$t('user.rules_address'),
+                name: value => (value && value.length >= 3 && value.length <= 50) || this.$t('user.rules_name'),
+                phone: value => ((value && value.length === 10) || (!value)) || this.$t('user.rules_phone'),
+                email: value => (value && /.+@.+/.test(value)) || this.$t('user.rules_email'),
+                password: value => (value && value.length >= 6 && value.length <= 20) || this.$t('user.rules_password'),
+                repeatPassword: value => (value && value === this.user.password) || this.$t('user.rules_repeat_password'),
             },
             organizationFacilities: [],
             organizationHostingFacilities: [],
@@ -295,11 +298,11 @@ export default {
             try {
                 if (this.id) {
                     const { data: userObject } = await UsersApi.updateUser(this.user);
-                    this.$store.commit(SET_SNACKBAR_STATUS, { message: 'User updated successfully!', color: 'primary' });
+                    this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('user.update_success'), color: 'primary' });
                     this.$router.push({ name: 'user', params: { id: String(this.id) } });
                 } else {
                     const { data: userObject } = await UsersApi.createUser(this.user);
-                    this.$store.commit(SET_SNACKBAR_STATUS, { message: 'User created successfully!', color: 'primary' });
+                    this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('user.create_success'), color: 'primary' });
                     this.$router.push({ name: 'user', params: { id: String(userObject.id) } });
                 }
             } catch (e) {

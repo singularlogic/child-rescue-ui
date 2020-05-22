@@ -89,19 +89,18 @@
                             <v-flex v-if="hasMap===true" xs12 sm2 class='pl-4 my-2'>
                                 <v-btn dark color="primary" @click="triggerPlaceChangeEvent()">Find address</v-btn>
                             </v-flex>
-                            <v-flex v-if="showMap" xs12 class="mt-3 mb-2 mb-2 mx-2">
+                            <v-flex v-if="hasMap===true" xs12 class="mt-3 mb-2 mb-2 mx-2">
                                 <v-text-field v-model="post.radius" suffix="km"
                                               label="Radius" placeholder="Set radius in km"
                                               hint="Default is 5km"
                                               style="padding: 5px;"
-                                              prepend-icon="360" @input="loadSearchField(post)"
-                                              :class="{'disable-events': isViewMode || isEditMode }"></v-text-field>
+                                              prepend-icon="360"
+                                              @input="triggerPlaceChangeEvent()"
+                                ></v-text-field>
                             </v-flex>
                             <v-flex v-if="showMap" xs12 class="mx-2">
                                 <gmap-map :center="center" :zoom="18" :options="mapOptions"
                                           style="width:100%;  height: 280px; margin-bottom: 5px;">
-                                    <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                 :draggable="false" @click="center=m.position"/> -->
                                     <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                                                  :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                 </gmap-map>
@@ -121,6 +120,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import * as R from 'ramda';
 import { dates, filters, fonts } from '@/utils/mixins';
 import Post from '@/components/Post.vue';
@@ -135,6 +135,7 @@ export default {
     mixins: [dates, filters, fonts],
     data() {
         return {
+            feedReload: true,
             tag: null,
             isVisibleToVolunteers: true,
             tags: [
@@ -162,15 +163,19 @@ export default {
             },
             markers: [],
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             showMap: false,
             address: null,
             valid: true,
             imageName: null,
             createPostDialog: false,
-            post: {},
+            post: { radius: 2 },
             posts: [],
+            timeoutFun: null,
             caseId: null,
             caseObject: {},
             isLoaded: false,
@@ -197,6 +202,7 @@ export default {
                 return 'Image post.';
             },
         },
+        ...mapGetters(['refreshFeed']),
     },
     async created() {
         this.caseId = this.$route.params.id;
@@ -204,8 +210,17 @@ export default {
         const { data: caseObject } = await CasesApi.get(this.caseId);
         this.caseObject = caseObject;
         this.isLoaded = true;
+        this.reloadFeed();
     },
     methods: {
+        async reloadFeed() {
+            if (this.refreshFeed === false) clearTimeout(this.timeoutFun);
+            if (this.refreshFeed) {
+                console.log('REFRESH FEED');
+                await this.loadFeed();
+                this.timeoutFun = setTimeout(this.reloadFeed, 30000);
+            }
+        },
         clearPost() {
             this.post.image = null;
             this.imageName = null;
@@ -231,7 +246,7 @@ export default {
         openCreatePostDialog() {
             this.reset();
             this.createPostDialog = true;
-            this.post = {};
+            this.post = { radius: 2 };
         },
         triggerPlaceChangeEvent() {
             if (this.address && this.address != null && this.address.length >= 3) {
@@ -243,7 +258,6 @@ export default {
                         this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Invalid address', color: 'error' });
                     } else {
                         results[0].formatted_address = this.address;
-                        // this.setPlace(results[0]);
                         this.loadSearchField(results[0]);
                         this.showMap = true;
                     }
@@ -256,27 +270,16 @@ export default {
             this.post.latitude = null;
             this.post.longitude = null;
         },
-        // setPlace(data) {
-        //     this.markers = [];
-        //     this.post.address = data.formatted_address;
-        //     this.post.latitude = data.geometry.location.lat();
-        //     this.post.longitude = data.geometry.location.lng();
-        //     const position = {
-        //         lat: data.geometry.location.lat(),
-        //         lng: data.geometry.location.lng(),
-        //     };
-        //     this.markers.push({ position });
-        //     this.center = position;
-        // },
         loadSearchField(postObject) {
-            console.log(this.postObject);
             this.markers = [];
             const position = {
-                lat: postObject.latitude,
-                lng: postObject.longitude,
+                lat: postObject.geometry.location.lat(),
+                lng: postObject.geometry.location.lng(),
             };
-            const radius = this.postObject.radius * 1000;
-            this.markers.push({ instance: this.postObject, position, radius });
+            const radius = this.post.radius * 1000;
+            this.post.latitude = postObject.geometry.location.lat();
+            this.post.longitude = postObject.geometry.location.lng();
+            this.markers.push({ instance: this.post, position, radius });
             this.center = position;
             this.currentPlace = null;
         },

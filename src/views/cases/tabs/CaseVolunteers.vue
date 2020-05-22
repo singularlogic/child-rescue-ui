@@ -5,12 +5,12 @@
                 <v-text-field
                     v-model="search"
                     append-icon="search"
-                    label="Search"
+                    :label="$t('volunteers.search')"
                     single-line
                     hide-details
                 ></v-text-field>
                 <v-spacer></v-spacer>
-                <v-btn @click="openManageVolunteersDialog()" color="primary" dark>Invite Volunteers</v-btn>
+                <v-btn @click="openManageVolunteersDialog()" color="primary" dark>{{ $t('volunteers.invite_volunteers') }}</v-btn>
             </v-toolbar>
             <v-data-table :headers="headers" :items="volunteers" :search="search" :pagination.sync="pagination" height="500px;">
                 <template v-slot:items="props">
@@ -37,7 +37,7 @@
                     </tr>
                 </template>
                 <v-alert v-slot:no-results :value="true" color="error" icon="warning">
-                    Your search for "{{ search }}" found no results.
+                    {{ $t('volunteers.no_results') }}
                 </v-alert>
             </v-data-table>
         </v-card>

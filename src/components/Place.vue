@@ -1,8 +1,8 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-dialog v-model="dialogAlert" persistent max-width="900px" @keydown.esc="cancel()">
+    <v-dialog v-model="dialogPlace" persistent max-width="700px" @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
             <v-btn dark color="primary" v-on="on" @click="setUp()">
-                CREATE ALERT
+                Add place
             </v-btn>
         </template>
         <v-card>
@@ -158,7 +158,7 @@ export default {
             isFormValid: false,
             alertDuration: null,
             place: null,
-            dialogAlert: false,
+            dialogPlace: false,
             rules: {
                 required: value => !!value || 'Field is required',
                 address: value => value && value.length > 5 && value.length < 250 || 'Address must be between 5 and 50 characters',

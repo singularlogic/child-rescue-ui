@@ -131,7 +131,7 @@ export default {
         DateTimePicker,
     },
     props: {
-        caseId: { type: String, default: null },
+        caseId: { type: Number, default: null },
         fullName: { type: String, default: null },
     },
     data() {
@@ -145,7 +145,10 @@ export default {
             currentPlace: null,
             autocomplete: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             isViewMode: false,
             isEditMode: false,
@@ -308,6 +311,7 @@ export default {
         save() {
             this.dialogFeedback = false;
             this.feedbackObject.case = this.caseId;
+            this.feedbackObject.is_main = true;
             this.createFeedback();
         },
         cancel() {
@@ -326,7 +330,7 @@ export default {
             const { data: response } = await CasesApi.reportMissing(this.caseId);
             const { data: feedbackObject } = await FeedbacksApi.create(this.feedbackObject);
             this.clearForm();
-            this.$router.push({ name: 'manage_facility' });
+            this.$router.push({ name: 'cases' });
         },
     },
 };

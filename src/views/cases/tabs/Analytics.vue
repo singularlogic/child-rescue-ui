@@ -2,6 +2,35 @@
     <div v-if="isLoaded" style="padding: 10pt;">
         <v-card flat class="mt-2">
             <v-card-title class="headline ml-4">
+                Stats
+            </v-card-title>
+            <v-card-text>
+                <v-layout v-if="caseObject.status === 'active'" row wrap align-center justify-spacee-between fill-height style="padding:5px;">
+                    <v-flex xs12 sm12 md4 style="padding: 5px;">
+                        <span class="name">Missing UAM:</span>&nbsp;<span class="value">{{ uam }}% </span>
+                    </v-flex>
+                    <v-flex xs12 sm12 md6 lg5 style="padding: 5px;">
+                        <span class="name">Lost, Injured or Otherwise Missing:</span>&nbsp;<span class="value">{{ lost }}% </span>
+                    </v-flex>
+                    <v-flex xs12 sm12 md3 style="padding: 5px;">
+                        <span class="name">Runaway:</span>&nbsp;<span class="value">{{ runaway }}% </span>
+                    </v-flex>
+                    <v-flex xs12 sm12 md4 style="padding: 5px;">
+                        <span class="name">Parental Abduction:</span>&nbsp;<span class="value">{{ parental }}% </span>
+                    </v-flex>
+                    <v-flex xs12 sm12 md4 style="padding: 5px;">
+                        <span class="name">Third Party Abduction:</span>&nbsp;<span class="value">{{ thirdparty || 0 }}% </span>
+                    </v-flex>
+                </v-layout>
+                <v-layout v-if="caseObject.status === 'inactive'" row wrap align-center justify-spacee-between fill-height style="padding:5px;">
+                    <v-flex xs12 style="padding: 5px;">
+                        <span class="name">Go Missing Probility:</span>&nbsp;<span class="value">{{ gomissing_prob }}% </span>
+                    </v-flex>
+                </v-layout>
+            </v-card-text>
+        </v-card>
+        <v-card flat class="mt-2">
+            <v-card-title class="headline ml-4">
                 Number of Facts
             </v-card-title>
             <v-card-text>
@@ -93,7 +122,8 @@
 <script>
 import VueApexCharts from 'vue-apexcharts';
 import { dates, filters, fonts } from '@/utils/mixins';
-import { AnalyticsApi } from '@/api';
+import { CasesApi, AnalyticsApi } from '@/api';
+
 
 export default {
     name: 'Analytics',
@@ -106,6 +136,13 @@ export default {
     },
     data() {
         return {
+            caseObject: {},
+            uam: null,
+            lost: null,
+            runaway: null,
+            parental: null,
+            thirdparty: null,
+            gomissing_prob: null,
             isLoaded: false,
             caseId: null,
             feedbackCountGroup: 'day',
@@ -161,9 +198,22 @@ export default {
     },
     methods: {
         async loadAnalytics() {
+            await this.loadCase();
             await this.loadFeedbackCount();
             await this.loadAlertCount();
             await this.loadAlertAreaCovered();
+        },
+        async loadCase() {
+            const { data: caseObject } = await CasesApi.get(this.caseId);
+            this.caseObject = caseObject;
+            console.log('YUOJ');
+            console.log(caseObject);
+            this.uam = (caseObject.data.profiling.missing_type.uam * 100).toFixed(2);
+            this.lost = (caseObject.data.profiling.missing_type.lost * 100).toFixed(2);
+            this.runaway = (caseObject.data.profiling.missing_type.runaway * 100).toFixed(2);
+            this.parental = (caseObject.data.profiling.missing_type.parental * 100).toFixed(2);
+            this.thirdparty = (caseObject.data.profiling.missing_type.thirdparty * 100).toFixed(2);
+            this.gomissing_prob = (caseObject.data.profiling.gomissing_prob * 100).toFixed(2);
         },
         async loadFeedbackCount() {
             const groupBy = this.feedbackCountGroup;
@@ -353,5 +403,13 @@ export default {
 <style scoped>
 .textField {
     padding: 5px 15px;
+}
+.name {
+    font-size: 20px;
+    color: cornflowerblue;
+}
+.value {
+    font-size: 20px;
+    color: coral;
 }
 </style>

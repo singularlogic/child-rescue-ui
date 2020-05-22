@@ -55,10 +55,12 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { bus } from '../../../main';
 import { dates, filters, fonts } from '@/utils/mixins';
 import Feedback from '@/components/Feedback.vue';
 import { CasesApi, FeedbacksApi } from '@/api';
+import { SET_REFRESH_FEEDBACKS } from '@/store/mutation-types';
 
 export default {
     components: {
@@ -67,6 +69,7 @@ export default {
     mixins: [dates, filters, fonts],
     data() {
         return {
+            timeoutFun: null,
             caseId: null,
             caseObject: {},
             isLoaded: false,
@@ -145,7 +148,13 @@ export default {
             ],
         };
     },
+    computed: {
+        ...mapGetters(['refreshFeedbacks']),
+    },
     async created() {
+        this.$store.commit(SET_REFRESH_FEEDBACKS, true);
+        console.log('AAAARG');
+        console.log(this.refreshFeedbacks);
         this.caseId = this.$route.params.id;
         await this.loadFeedbacks();
         bus.$off('reload-feedbacks-event');
@@ -154,6 +163,7 @@ export default {
         });
         const { data: caseObject } = await CasesApi.get(this.caseId);
         this.caseObject = caseObject;
+        this.reloadFeedbacks();
         this.isLoaded = true;
     },
     methods: {
@@ -161,6 +171,14 @@ export default {
             const { data: feedbacks } = await FeedbacksApi.all({ caseId: this.caseId });
             feedbacks.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
             this.feedbacks = feedbacks;
+        },
+        async reloadFeedbacks() {
+            if (this.refreshFeedbacks === false) clearTimeout(this.timeoutFun);
+            if (this.refreshFeedbacks) {
+                console.log('YOO');
+                this.loadFeedbacks();
+                this.timeoutFun = setTimeout(this.reloadFeedbacks, 10000);
+            }
         },
         openFeedback(item) {
             bus.$emit('view-feedback-dialog-event', item);

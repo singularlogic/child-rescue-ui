@@ -3,10 +3,10 @@
         <v-flex xs12>
             <v-card>
                 <v-toolbar flat color="white">
-                    <v-toolbar-title>Organization Facilities</v-toolbar-title>
+                    <v-toolbar-title>{{ $t('facility.organzation_facilities') }}</v-toolbar-title>
                     <v-spacer></v-spacer>
                     <router-link to="/facilities/new/" v-slot="{ href, route, navigate }">
-                        <v-btn :href="href" @click="navigate" color="primary" dark>Add Facility</v-btn>
+                        <v-btn :href="href" @click="navigate" color="primary" dark>{{ $t('facility.add_facility') }}</v-btn>
                     </router-link>
                 </v-toolbar>
                 <v-data-table
@@ -63,7 +63,7 @@
                         :value="true"
                         color="error"
                         icon="warning"
-                    >Your search for "{{ search }}" found no results.</v-alert>
+                    >{{ $t('facility.no_results') }}</v-alert>
                 </v-data-table>
             </v-card>
         </v-flex>
@@ -92,36 +92,36 @@ export default {
                     width: '5%',
                 },
                 {
-                    text: 'Name',
+                    text: this.$t('facility.name'),
                     value: 'name',
                     width: '10%',
                 },
                 {
-                    text: 'Email',
+                    text: this.$t('facility.email'),
                     value: 'email',
                     width: '10%',
                 },
                 {
-                    text: 'Phone',
+                    text: this.$t('facility.phone'),
                     value: 'phone',
                     sortable: false,
                     width: '10%',
                 },
                 {
-                    text: 'Address',
+                    text: this.$t('facility.address'),
                     value: 'address',
                     sortable: false,
                     width: '10%',
                 },
                 {
-                    text: 'Is hosting',
+                    text: this.$t('facility.is_hosting'),
                     value: 'supports_hosting',
                     align: 'center',
                     sortable: true,
                     width: '5%',
                 },
                 {
-                    text: 'Capacity',
+                    text: this.$t('facility.capacity'),
                     value: 'capacity',
                     align: 'center',
                     sortable: true,
@@ -130,7 +130,7 @@ export default {
                 {
                     align: 'center',
                     sortable: false,
-                    text: 'Actions',
+                    text: this.$t('facility.actions'),
                     value: 'name',
                     width: '5%',
                 },
@@ -162,7 +162,7 @@ export default {
         async toggleActivation(item) {
             item.is_active = !item.is_active;
             const { data: facilityObject } = await FacilitiesApi.update(this.$store.state.organizationId, item, { facility_id: item.id });
-            this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Facility updated successfully!', color: 'primary' });
+            this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('facility.update_success'), color: 'primary' });
         },
     },
 };

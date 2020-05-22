@@ -15,13 +15,14 @@
                             <v-flex xs12 sm12 md6 lg6 xl6>
                                 <div style="margin: 15%;">
                                     <v-form ref="loginForm" v-model="valid" lazy-validation>
-                                        <h2>Login</h2>
+                                        <h2>{{ $t('login.title') }}</h2>
                                         <v-text-field v-model="user.email" type="email" label="Email" prepend-icon="email" ref="emailField" :rules="[rules.required, rules.email]" @keyup.enter.native="validate"></v-text-field>
-                                        <v-text-field id="password" v-model="user.password" type="password" label="Password" prepend-icon="lock" :rules="[rules.required, rules.password]" @keyup.enter.native="validate"></v-text-field>
-                                        <v-btn block large color="#FFA500" dark @click="validate()">Login</v-btn>
+                                        <v-text-field id="password" v-model="user.password" type="password" :label="$t('login.password')" prepend-icon="lock" :rules="[rules.required, rules.password]" @keyup.enter.native="validate"></v-text-field>
+                                        <v-btn block large color="#FFA500" dark @click="validate()">{{ $t('login.login') }}</v-btn>
                                     </v-form>
                                     <br/>
-                                    <a href="">Forgot your password?</a>
+                                    <!-- <a href="">Forgot your password?</a> -->
+                                    <a href="/forget-password/">{{ $t('login.forgot_password') }}</a>
                                 </div>
                             </v-flex>
                         </v-layout>
@@ -43,9 +44,9 @@ export default {
             user: {},
             valid: true,
             rules: {
-                required: value => !!value || 'Field is required',
-                email: value => (value && /.+@.+/.test(value)) || 'E-mail must be valid',
-                password: value => (value && value.length >= 6 && value.length <= 20) || 'Password must be between 6 and 20 characters',
+                required: value => !!value || this.$t('login.rules_required'),
+                email: value => (value && /.+@.+/.test(value)) || this.$t('login.rules_email'),
+                password: value => (value && value.length >= 6 && value.length <= 20) || this.$t('login.rules_password'),
             },
         };
     },
@@ -77,7 +78,7 @@ export default {
                 }
             } catch (e) {
                 console.log(e);
-                this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Invalid email or password', color: 'error' });
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('login.invalid_creds'), color: 'error' });
             }
         },
         login(event) {

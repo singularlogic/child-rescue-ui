@@ -5,19 +5,19 @@
                 <v-toolbar color="white" flat>
                     <v-icon>edit</v-icon>
                     <div class="mx-2">
-                        <div class="title">Edit facility</div>
-                        <div class="caption grey--text">* fields are required</div>
+                        <div class="title">{{ $t('facility.edit_facility') }}</div>
+                        <div class="caption grey--text">{{ $t('facility.required_fields') }}</div>
                     </div>
                     <v-spacer></v-spacer>
                     <v-btn v-if="id" @click="presentView()" color="" dark>
-                        <span>Cancel</span>
+                        <span>{{ $t('facility.cancel') }}</span>
                     </v-btn>
                     <v-btn v-else @click="presentListView()" color="" dark>
-                        <span>Cancel</span>
+                        <span>{{ $t('facility.cancel') }}</span>
                     </v-btn>
                     <v-btn @click="validate()" color="primary" dark>
-                        <span v-if="id">Update</span>
-                        <span v-else>Save</span>
+                        <span v-if="id">{{ $t('facility.update') }}</span>
+                        <span v-else>{{ $t('facility.save') }}</span>
                     </v-btn>
                 </v-toolbar>
                 <v-card-text>
@@ -34,7 +34,7 @@
                                             v-if="!isViewMode"
                                             clearable
                                             v-model="facility.name"
-                                            label="* Name"
+                                            :label="$t('facility.star_name')"
                                             :rules="[rules.required, rules.name]"
                                         ></v-text-field>
                                     </v-flex>
@@ -47,7 +47,7 @@
                                 <v-layout v-if="facility.supports_hosting">
                                     <v-flex xs12 sm6 md6 lg6 xl6>
                                         <v-select :items="isHostingOptions" v-model="facility.supports_hosting" :rules="[rules.required]"
-                                                  label="* Is hosting" item-text="text" item-value="value" hint="Select the facility role."
+                                                  :label="$t('facility.star_is_hosting')" item-text="text" item-value="value" :hint="$t('facility.is_hosting_hint')"
                                                   style="margin-right:5px;">
                                         </v-select>
                                     </v-flex>
@@ -57,7 +57,7 @@
                                             v-if="!isViewMode"
                                             type="number"
                                             v-model="facility.capacity"
-                                            label="* Capacity"
+                                            :label="$t('facility.star_capacity')"
                                             :rules="[rules.required, rules.capacity]"
                                         ></v-text-field>
                                     </v-flex>
@@ -65,7 +65,7 @@
                                 <v-layout v-else>
                                     <v-flex xs12 sm12 md12 lg12 xl12>
                                         <v-select :items="isHostingOptions" v-model="facility.supports_hosting" :rules="[rules.required]"
-                                                  label="* Is hosting" item-text="text" item-value="value" hint="Select the facility role."
+                                                  :label="$t('facility.star_is_hosting')" item-text="text" item-value="value" :hint="$t('facility.is_hosting_hint')"
                                                   style="margin-right:5px;">
                                         </v-select>
                                     </v-flex>
@@ -82,7 +82,7 @@
                                             v-if="!isViewMode"
                                             clearable
                                             v-model="facility.email"
-                                            label="Email"
+                                            :label="$t('facility.email')"
                                             :rules="[rules.email]"
                                         ></v-text-field>
                                     </v-flex>
@@ -94,7 +94,7 @@
                                             v-model="facility.phone"
                                             mask="phone"
                                             placeholder="(XXX) XXX XXXX"
-                                            label="Phone"
+                                            :label="$t('facility.phone')"
                                             :rules="[rules.phone]"
                                         ></v-text-field>
                                     </v-flex>
@@ -107,8 +107,8 @@
                                 <v-text-field
                                     ref="addressField"
                                     v-model="place"
-                                    label="Address"
-                                    hint="Type the address and then hit enter"
+                                    :label="$t('facility.address')"
+                                    :hint="$t('facility.address_hint')"
                                     persistent-hint
                                     @keyup.enter.native="triggerPlaceChangeEvent(place)"
                                 ></v-text-field>
@@ -117,7 +117,7 @@
                                     outline
                                     color="primary" style="margin-top: 0px;"
                                     @click="triggerPlaceChangeEvent(place)"
-                                >Find address</v-btn>
+                                >{{ $t('facility.find_address') }}</v-btn>
                             </v-list-tile>
                         </v-list>
                         <v-layout row>
@@ -176,16 +176,19 @@ export default {
             places: [],
             currentPlace: null,
             mapOptions: {
-                disableDefaultUI: true,
+                // disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: true,
+                streetViewControl: true,
             },
             place: null,
             rules: {
-                required: value => (!!value || value === false) || 'Field is required',
-                address: value => (value && value.length > 5 && value.length < 250) || 'Address must be between 5 and 50 characters',
-                name: value => (value && value.length >= 3 && value.length <= 20) || 'Field must be between 3 and 128 characters',
-                capacity: value => (value && value > 0 && value <= 1000) || 'Number of children must be between 0 and 1000',
-                phone: value => ((value && value.length === 10) || !value) || 'Phone must have 10 characters',
-                email: value => ((value && /.+@.+/.test(value)) || !value) || 'E-mail must be valid',
+                required: value => (!!value || value === false) || this.$t('facility.rules_required'),
+                address: value => (value && value.length > 5 && value.length < 250) || this.$t('facility.address_rules'),
+                name: value => (value && value.length >= 3 && value.length <= 20) || this.$t('facility.rules_name'),
+                capacity: value => (value && value > 0 && value <= 1000) || this.$t('facility.rules_capacity'),
+                phone: value => ((value && value.length === 10) || !value) || this.$t('facility.rules_phone'),
+                email: value => ((value && /.+@.+/.test(value)) || !value) || this.$t('facility.rules_email'),
             },
             isHostingOptions: [
                 {
@@ -264,11 +267,11 @@ export default {
                 this.facility.organization = this.$store.state.organizationId;
                 if (this.id) {
                     const { data: facilityObject } = await FacilitiesApi.update(this.facility);
-                    this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Facility updated successfully!', color: 'primary' });
+                    this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('facility.update_success'), color: 'primary' });
                     this.$router.push({ name: 'facility', params: { id: String(facilityObject.id) } });
                 } else {
                     const { data: facilityObject } = await FacilitiesApi.create(this.facility);
-                    this.$store.commit(SET_SNACKBAR_STATUS, { message: 'Facility created successfully!', color: 'primary' });
+                    this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('facility.create_success'), color: 'primary' });
                     this.$router.push({ name: 'facility', params: { id: String(facilityObject.id) } });
                 }
             } catch (e) {

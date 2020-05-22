@@ -29,7 +29,7 @@
                                                 v-model="showPlaces"
                                                 label="Show POI"
                                                 class="mt-3"
-                                                @change="renderPlaces()"
+                                                @change="renderPlaces();renderSearchAreas();renderAlertAreas();"
                                             ></v-checkbox>
                                         </v-toolbar-title>
                                         <v-toolbar-title>
@@ -45,10 +45,16 @@
                                 <gmap-map :center="center" :zoom="zoom" :options="mapOptions" style="height: 350px;">
                                     <gmap-marker v-for="(m) in initFeedbackMarkers" :key="m.id" :position="m.position" :clickable="true" :draggable="false" @click="openWindow('initFeedback', m)"/>
                                     <gmap-marker v-for="(m) in feedbackMarkers" :key="m.id" :position="m.position" :clickable="true" :draggable="false" @click="openWindow('feedback', m)"/>
-                                    <gmap-marker v-for="(m) in placeMarkers" :key="m.id" :position="m.position" :animationo="m.animation" :clickable="true" :draggable="false" @click="openWindow('place', m)" :icon="m.icon"/>
-                                    <gmap-marker v-for="(m) in volunteerMarkers" :key="m.id" :position="m.position" :animationo="m.animation" :clickable="true" :draggable="false" @click="openWindow('volunteer', m)" :icon="m.icon"/>
+                                    <gmap-marker v-for="(m) in placeMarkers" :key="m.id" :position="m.position" :animation="m.animation" :clickable="true" :draggable="false" @click="openWindow('place', m)" :icon="m.icon"/>
+                                    <gmap-marker v-for="(m) in volunteerMarkers" :key="m.id" :position="m.position" :animation="m.animation" :clickable="true" :draggable="false" @click="openWindow('volunteer', m)" :icon="m.icon"/>
                                     <gmap-circle v-for="(m) in alertMarkers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
-                                                 :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
+                                                 :options="{fillColor:'red', fillOpacity:0.5, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
+                                    <gmap-circle v-for="(m) in placeMarkers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false" :animation="m.animation" @click="openWindow('place', m)" :icon="m.icon"
+                                                 :options="{fillColor:'blue', fillOpacity:0.5, strokeWidth:0.1, strokeColor:'blue', strokePattern: 'gap' }"/>
+                                    <gmap-circle v-for="(m) in searchAreaMarkers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
+                                                 :options="{fillColor:'green', fillOpacity:0, strokeWidth:1, strokeColor:'green', strokePattern: 'dot' }"/>
+                                    <gmap-circle v-for="(m) in alertAreaMarkers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
+                                                 :options="{fillColor:'red', fillOpacity:0, strokeWidth:1, strokeColor:'red', strokePattern: 'Dash' }"/>
                                     <gmap-info-window
                                         @closeclick="window_open=false"
                                         :opened="window_open"
@@ -79,9 +85,14 @@
                                                 </v-list-tile-avatar>
                                                 <v-list-tile-content>
                                                     <v-list-tile-title v-if="infoObject.feedback"><a :href="`/cases/${caseId}/feedbacks`" style="color: blue;">Fact: {{ infoObject.feedback }}</a></v-list-tile-title>
-                                                    <v-list-tile-title v-else><a :href="`/cases/${caseId}/feedbacks`" style="color: blue;">Fact: {{ infoObject.id }}</a></v-list-tile-title>
+                                                    <v-list-tile-title v-else><a :href="`/cases/${caseId}/feedbacks`" style="color: blue;">
+                                                        <span v-if="infoObject.feedback">Fact</span>
+                                                        <span v-else>POI</span>
+                                                        : {{ infoObject.id }}
+                                                    </a></v-list-tile-title>
                                                     <v-list-tile-sub-title>{{ infoObject.address || " - " | title }}</v-list-tile-sub-title>
-                                                    <v-list-tile-sub-title>{{ infoObject.description || " - " | title }}</v-list-tile-sub-title>
+                                                    <v-list-tile-sub-title v-if="infoObject.type === 'initFeedback'">{{ caseObject.disappearance_date | formatDateTime }}</v-list-tile-sub-title>
+                                                    <v-list-tile-sub-title v-else>{{ (infoObject.description || infoObject.comment) || " - " | title }}</v-list-tile-sub-title>
                                                 </v-list-tile-content>
                                             </v-list-tile>
                                         </v-list>
@@ -160,9 +171,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { dates, filters, fonts } from '@/utils/mixins';
 import { UsersApi, AlertsApi, FeedbacksApi, CasesApi, PlacesApi } from '@/api';
 import Feed from '@/components/Feed.vue';
+import { SET_REFRESH_CONTROL, SET_REFRESH_FEED } from '@/store/mutation-types';
 
 
 export default {
@@ -172,6 +185,7 @@ export default {
     mixins: [dates, filters, fonts],
     data() {
         return {
+            timeoutFun: null,
             infowindow: { lat: 10, lng: 10.0 },
             window_open: false,
 
@@ -190,6 +204,8 @@ export default {
             volunteerMarkers: [],
             userObject: {},
             placeMarkers: [],
+            searchAreaMarkers: [],
+            alertAreaMarkers: [],
             place: null,
             places: [],
             volunteers: [],
@@ -210,6 +226,10 @@ export default {
             volunteer_icon: require('../../../assets/volunteer_icon.jpeg'),
         };
     },
+    computed: {
+        ...mapGetters(['refreshControl']),
+        ...mapGetters(['refreshFeed']),
+    },
     mounted() {
         // if (this.userObject.role === 'network_manager') {
         //     this.showAlerts = false;
@@ -225,9 +245,22 @@ export default {
         // this.render();
     },
     async created() {
+        this.$store.commit(SET_REFRESH_CONTROL, true);
+        this.$store.commit(SET_REFRESH_FEED, true);
+        console.log('AAAARG');
+        console.log(this.refreshControl);
+        console.log(this.refreshFeed);
         const { data: userObject } = await UsersApi.get();
         this.userObject = userObject;
-
+        console.log(userObject.role);
+        if (this.userObject.role === 'case_manager') {
+            this.showAlerts = true;
+            this.showFeedbacks = true;
+        }
+        if (this.userObject.role === 'network_manager') {
+            this.showPlaces = true;
+            this.showVolunteers = true;
+        }
         this.caseId = this.$route.params.id;
         const { data: caseObject } = await CasesApi.get(this.caseId);
         this.caseObject = caseObject;
@@ -236,9 +269,24 @@ export default {
         await this.loadPlaces();
         await this.loadVolunteers();
         this.geolocate();
+        this.render();
+        this.reloadAll();
         this.isLoaded = true;
     },
     methods: {
+        async reloadAll() {
+            if (this.refreshControl === false) clearTimeout(this.timeoutFun);
+            if (this.refreshControl) {
+                console.log('REFRESH CONTROL');
+                await this.loadAlerts();
+                await this.loadFeedbacks();
+                await this.loadPlaces();
+                await this.loadVolunteers();
+                this.geolocate();
+                this.render();
+                this.timeoutFun = setTimeout(this.reloadAll, 60000);
+            }
+        },
         getProperImagePath(image) {
             return `${process.env.VUE_APP_BACKEND}/media/${image}`;
         },
@@ -295,6 +343,8 @@ export default {
             this.renderPlaces();
             this.renderFeedbacks();
             this.renderAlerts();
+            this.renderSearchAreas();
+            this.renderAlertAreas();
         },
         renderVolunteers() {
             if (this.showVolunteers) {
@@ -328,6 +378,7 @@ export default {
         },
         renderPlaces() {
             if (this.showPlaces) {
+                this.placeMarkers = [];
                 this.places.forEach((place, index) => {
                     if (place.latitude && place.longitude) {
                         const position = {
@@ -341,13 +392,15 @@ export default {
                         };
                         // eslint-disable-next-line no-undef
                         const animation = google.maps.Animation.DROP;
-
+                        console.log(place);
+                        const radius = place.radius * 1000;
                         setTimeout(() => {
                             this.placeMarkers.push({
                                 instance: place,
                                 position,
                                 icon,
                                 animation,
+                                radius,
                             });
                         }, 200 * index);
                     }
@@ -358,12 +411,15 @@ export default {
         },
         renderFeedbacks() {
             if (this.showFeedbacks) {
+                this.feedbackMarkers = [];
                 this.feedbacks.forEach((feedback) => {
                     if (feedback.latitude && feedback.longitude) {
                         const position = {
                             lat: feedback.latitude,
                             lng: feedback.longitude,
                         };
+                        console.log('Feedback');
+                        console.log(feedback);
                         this.feedbackMarkers.push({ instance: feedback, position });
                     }
                 });
@@ -373,6 +429,7 @@ export default {
         },
         renderAlerts() {
             if (this.showAlerts) {
+                this.alertMarkers = [];
                 this.alerts.forEach((alert) => {
                     if (alert.latitude && alert.longitude) {
                         const position = {
@@ -385,6 +442,40 @@ export default {
                 });
             } else {
                 this.alertMarkers = [];
+            }
+        },
+        renderSearchAreas() {
+            if (this.showPlaces) {
+                this.searchAreaMarkers = [];
+                this.places.forEach((place) => {
+                    if (place.data.search_area.latitude && place.data.search_area.longitude) {
+                        const position = {
+                            lat: place.data.search_area.latitude,
+                            lng: place.data.search_area.longitude,
+                        };
+                        const radius = place.data.search_area.radius * 1000;
+                        this.searchAreaMarkers.push({ instance: place.data.search_area, position, radius });
+                    }
+                });
+            } else {
+                this.searchAreaMarkers = [];
+            }
+        },
+        renderAlertAreas() {
+            if (this.showPlaces) {
+                this.alertAreaMarkers = [];
+                this.places.forEach((place) => {
+                    if (place.data.alert_area.latitude && place.data.alert_area.longitude) {
+                        const position = {
+                            lat: place.data.alert_area.latitude,
+                            lng: place.data.alert_area.longitude,
+                        };
+                        const radius = place.data.alert_area.radius * 1000;
+                        this.alertAreaMarkers.push({ instance: place.data.alert_area, position, radius });
+                    }
+                });
+            } else {
+                this.alertAreaMarkers = [];
             }
         },
     },

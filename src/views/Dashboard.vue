@@ -2,64 +2,64 @@
     <div v-if="isLoaded">
         <v-layout>
             <v-flex xs12 sm12 md12 lg12 xl12 class="intro">
-                <h2 style="margin-top: 20px; margin-left: 20px; color: #FFFFFF;">DASHBOARD</h2>
+                <h2 style="margin-top: 20px; margin-left: 20px; color: #FFFFFF;">{{ $t('dashboard.title') }}</h2>
                 <span v-if="role === 'case_manager'"
-                      style="margin-left: 20px; color: #FFFFFF; font-size: large;">Overview of the Child Rescue case manager platform</span>
+                      style="margin-left: 20px; color: #FFFFFF; font-size: large;">{{ $t('dashboard.cm_overview') }}</span>
                 <span v-if="role === 'facility_manager'"
-                      style="margin-left: 20px; color: #FFFFFF; font-size: large;">Overview of the Child Rescue facility manager platform</span>
+                      style="margin-left: 20px; color: #FFFFFF; font-size: large;">{{ $t('dashboard.fm_overview') }}</span>
                 <!-- <span v-if="role === 'facility_manager'"
                       style="margin-left: 20px; color: #FFFFFF; font-size: large;">Overview of {{ getFacility.name }} facility</span> -->
             </v-flex>
         </v-layout>
         <v-layout class="intro-items" justify-center align-center wrap v-if="role === 'case_manager'">
             <v-flex xs11 sm3 md3 lg3 class="intro-item1">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">CASES</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.cases') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">folder_open</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">{{ cases.length }}</div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;"> active cases</div>
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.active_cases') }}</div>
             </v-flex>
             <v-flex xs11 sm3 md3 lg3 class="intro-item2">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">ALERTS</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.alerts') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">group</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">{{ alerts.length }}</div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;"> active alerts
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.active_alerts') }}
                 </div>
             </v-flex>
             <v-flex xs11 sm3 md3 lg3 class="intro-item3">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">FACTS</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.facts') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">folder_shared</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">{{ feedbacks.length }}</div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">total facts
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.total_facts') }}
                 </div>
             </v-flex>
         </v-layout>
         <v-layout class="intro-items" justify-center align-center wrap v-if="role === 'facility_manager'">
             <v-flex xs11 sm3 md3 lg3 class="intro-item1">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">HOSTED CHILDREN</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.hosted_children') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">folder_open</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">{{ facilityCases.length }}</div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;"> in facility</div>
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.in_facility') }}</div>
             </v-flex>
             <v-flex xs11 sm3 md3 lg3 class="intro-item3">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">MISSING CHILDREN</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.missing_children') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">folder_shared</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">
                     {{ missingCases.length }}
                 </div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">Missing children in organisation
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.missing_children_organization') }}
                 </div>
             </v-flex>
             <v-flex xs11 sm3 md3 lg3 class="intro-item2">
-                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">REGISTRY</h4>
+                <h4 style="font-size: large; color: #FFFFFF; margin-top: 5px; margin-left: 10px;">{{ $t('dashboard.registry') }}</h4>
                 <v-icon large dark style="float: right; margin-top: 10px;">group</v-icon>
                 <div style="font-size: 40px; color: #FFFFFF; margin-top: 0px; margin-left: 10px;">{{ allCases.length }}</div>
-                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">All recorded children in organisation</div>
+                <div style="font-size: small; color: #FFFFFF; margin-top: -5px; margin-left: 10px;">{{ $t('dashboard.all_recorded') }}</div>
             </v-flex>
         </v-layout>
         <v-layout row wrap style="margin-top: 5px;">
             <v-flex xs12 sm12 md12 lg6 xl6 v-if="role === 'case_manager'">
                 <v-card flat tile style="margin: 10px 15px 0px 15px;">
-                    <v-card-title><h2>ACTIVE CASES</h2></v-card-title>
+                    <v-card-title><h2>{{ $t('dashboard.active_cases_title') }}</h2></v-card-title>
                     <v-layout row wrap style="min-height: 500px;">
                         <v-flex v-if="cases.length > 0" xs12 sm6 md3 lg6 xl4 v-for="item in cases" :key="item.id" @click="loadCase(item)">
                             <v-card class="clickable_card" tile style="padding: 5px; margin: 5px 15px 15px 15px;">
@@ -67,7 +67,7 @@
                                     <v-container fill-height fluid pa-2>
                                         <v-layout justify-space-between class="tile_background_tags">
                                             <v-flex v-if="item.amber_alert" class="tile_background_tag_left"><span
-                                                style="background-color: red; padding: 5px; border-radius: 2px;">Amber alert</span>
+                                                style="background-color: red; padding: 5px; border-radius: 2px;">{{ $t('dashboard.amber_alert') }}</span>
                                             </v-flex>
                                             <v-flex v-if="item.status === 'closed'"
                                                     class="tile_background_tag_right"><span
@@ -84,14 +84,14 @@
                                     style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;">
                                     {{ item.first_name | title }} {{ item.last_name | title }}
                                 </div>
-                                <div style="text-align: left; color: #C0C0C0;">Missing from: <b>{{
+                                <div style="text-align: left; color: #C0C0C0;">{{ $t('dashboard.missing_from') }}: <b>{{
                                     item.disappearance_date | formatDate }} </b>
                                 </div>
                             </v-card>
                         </v-flex>
                         <v-flex v-if="cases.length === 0" xs12 sm12 md12 lg12 xl12 style="background-color: #C3C3C3;">
                             <v-layout row wrap align-center justify-center fill-height>
-                                <h3 style="margin-top: -20px;" class="display-1">No records found.</h3>
+                                <h3 style="margin-top: -20px;" class="display-1">{{ $t('dashboard.no_records') }}</h3>
                             </v-layout>
                         </v-flex>
                     </v-layout>
@@ -99,7 +99,7 @@
             </v-flex>
             <v-flex xs12 sm12 md12 lg8 xl8 v-if="role === 'facility_manager'">
                 <v-card flat tile style="margin: 10px 15px 0px 15px;">
-                    <v-card-title><h2>RECENTLY ARRIVED</h2></v-card-title>
+                    <v-card-title><h2>{{ $t('dashboard.recently_arrived') }}</h2></v-card-title>
                     <v-layout row wrap style="min-height: 500px;">
                         <v-flex v-if="facilityCases.length > 0" xs12 sm6 md3 lg3 xl3 v-for="item in facilityCases" :key="item.id" @click="loadFacilityCase(item)">
                             <v-card class="clickable_card" tile style="padding: 5px; margin: 5px 15px 15px 15px;">
@@ -107,21 +107,21 @@
                                     <v-container v-if="item.status==='active'" fill-height fluid pa-2>
                                         <v-layout justify-space-between class="tile_background_tags">
                                             <v-flex class="tile_background_tag_right_red">
-                                                <span style="background-color: #555; padding: 5px; border-radius: 2px;">missing</span>
+                                                <span style="background-color: #555; padding: 5px; border-radius: 2px;">{{ $t('dashboard.missing') }}</span>
                                             </v-flex>
                                         </v-layout>
                                     </v-container>
                                     <v-container v-if="item.status==='inactive'&&item.presence_status=='present'" fill-height fluid pa-2>
                                         <v-layout justify-space-between class="tile_background_tags">
                                             <v-flex class="tile_background_tag_right_red">
-                                                <span style="background-color: green; padding: 5px; border-radius: 2px;">present</span>
+                                                <span style="background-color: green; padding: 5px; border-radius: 2px;">{{ $t('dashboard.present') }}</span>
                                             </v-flex>
                                         </v-layout>
                                     </v-container>
                                     <v-container v-if="item.status==='inactive'&&item.presence_status=='not_present'" fill-height fluid pa-2>
                                         <v-layout justify-space-between class="tile_background_tags">
                                             <v-flex class="tile_background_tag_right_red">
-                                                <span style="background-color: #2FD1D4; padding: 5px; border-radius: 2px;">not present</span>
+                                                <span style="background-color: #2FD1D4; padding: 5px; border-radius: 2px;">{{ $t('dashboard.not_present') }}</span>
                                             </v-flex>
                                         </v-layout>
                                     </v-container>
@@ -130,14 +130,14 @@
                                     style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;">
                                     {{ item.first_name | title }} {{ item.last_name | title }}
                                 </div>
-                                <div style="text-align: left; color: #C0C0C0;">Arrival at: <b>{{
+                                <div style="text-align: left; color: #C0C0C0;">{{ $t('dashboard.arrival_at') }}: <b>{{
                                     item.arrival_date | formatDate }} </b>
                                 </div>
                             </v-card>
                         </v-flex>
                         <v-flex v-if="facilityCases.length === 0" xs12 sm12 md12 lg12 xl12 style="background-color: #C3C3C3;">
                             <v-layout row wrap align-center justify-center fill-height>
-                                <h3 style="margin-top: -20px;" class="display-1">No children in this facility!</h3>
+                                <h3 style="margin-top: -20px;" class="display-1">{{ $t('dashboard.no_children') }}</h3>
                             </v-layout>
                         </v-flex>
                     </v-layout>
@@ -147,14 +147,14 @@
                 <v-layout row wrap>
                     <v-flex xs12 sm12 md12 lg12 xl12>
                         <v-card flat tile style="margin: 10px 15px 0px 15px;">
-                            <v-card-title><h2>RECENT ALERTS</h2></v-card-title>
+                            <v-card-title><h2>{{ $t('dashboard.recent_alerts') }}</h2></v-card-title>
                             <v-layout v-if="latestAlerts.length > 0" row wrap style="min-height: 213px;">
                                 <v-flex>
                                     <v-list>
                                         <v-list-tile v-for="(item, index) in latestAlerts" :key="item.id" @click="openAlert(item)" style="height: 40px;">
                                             <v-list-tile-content>
                                                 <div :class="{ hasColor: index%2===0 }"
-                                                     style="text-align: left; font-size: medium; font-weight: bold;">Case: {{ item.case }} - Created: {{ item.start | formatDateTimeMinutes }}
+                                                     style="text-align: left; font-size: medium; font-weight: bold;">{{ $t('dashboard.case') }}: {{ item.case }} - {{ $t('dashboard.created') }}: {{ item.start | formatDateTimeMinutes }}
                                                 </div>
                                             </v-list-tile-content>
                                             <v-list-tile-action>
@@ -167,7 +167,7 @@
                             <v-layout v-else row wrap align-center style="min-height: 213px; background-color: #C3C3C3;">
                                 <v-flex>
                                     <v-layout row wrap align-center justify-center fill-height>
-                                        <h3 style="margin-top: -20px;" class="display-1">No alerts!</h3>
+                                        <h3 style="margin-top: -20px;" class="display-1">{{ $t('dashboard.no_alerts') }}</h3>
                                     </v-layout>
                                 </v-flex>
                             </v-layout>
@@ -175,7 +175,7 @@
                     </v-flex>
                     <v-flex xs12 sm12 md12 lg12 xl12>
                         <v-card flat tile style="margin: 10px 15px 0px 15px;">
-                            <v-card-title><h2>RECENT FACTS</h2></v-card-title>
+                            <v-card-title><h2>{{ $t('dashboard.recent_facts') }}</h2></v-card-title>
                             <v-layout v-if="latestFeedbacks.length > 0" row wrap style="min-height: 213px;">
                                 <v-flex>
                                     <v-list>
@@ -183,7 +183,7 @@
                                             <v-list-tile-content>
                                                 <div :class="{ hasColor: index%2===0 }"
                                                      style="text-align: left; font-size: medium; font-weight: bold;">
-                                                    Case: {{ item.case }} - Created: {{ item.created_at | formatDateTimeMinutes }} - Source: {{ item.source }}
+                                                    {{ $t('dashboard.case') }}: {{ item.case }} - {{ $t('dashboard.created') }}: {{ item.created_at | formatDateTimeMinutes }} - {{ $t('dashboard.source') }}: {{ item.source }}
                                                 </div>
                                             </v-list-tile-content>
                                             <v-list-tile-action>
@@ -196,7 +196,7 @@
                             <v-layout v-else row wrap align-center style="min-height: 213px; background-color: #C3C3C3;">
                                 <v-flex>
                                     <v-layout row wrap align-center justify-center fill-height>
-                                        <h3 style="margin-top: -20px;" class="display-1">No facts!</h3>
+                                        <h3 style="margin-top: -20px;" class="display-1">{{ $t('dashboard.no_facts') }}</h3>
                                     </v-layout>
                                 </v-flex>
                             </v-layout>
@@ -208,14 +208,14 @@
                 <v-layout row wrap>
                     <v-flex xs12 sm12 md12 lg12 xl12>
                         <v-card flat tile style="margin: 10px 15px 0px 15px;">
-                            <v-card-title><h2>MISSING CHILDREN</h2></v-card-title>
+                            <v-card-title><h2>{{ $t('dashboard.missing_children') }}</h2></v-card-title>
                             <v-layout v-if="missingCases.length > 0" row wrap style="min-height: 500px;">
                                 <v-flex>
                                     <v-list>
                                         <v-list-tile v-for="(item, index) in missingCases" :key="item.id" @click="loadFacilityCase(item)" style="height: 40px;">
                                             <v-list-tile-content>
                                                 <div :class="{ hasColor: index%2===0 }"
-                                                     style="text-align: left; font-size: medium; font-weight: bold;">{{ item.last_name | title }} {{ item.first_name | title }}, since: {{ item.disappearance_date | formatDateTimeMinutes }}
+                                                     style="text-align: left; font-size: medium; font-weight: bold;">{{ item.last_name | title }} {{ item.first_name | title }}, {{ $t('dashboard.since') }}: {{ item.disappearance_date | formatDateTimeMinutes }}
                                                 </div>
                                             </v-list-tile-content>
                                             <v-list-tile-action>
@@ -228,7 +228,7 @@
                             <v-layout v-else row wrap align-center style="min-height: 500px; background-color: #C3C3C3;">
                                 <v-flex>
                                     <v-layout row wrap align-center justify-center fill-height>
-                                        <h3 style="margin-top: -20px;" class="display-1">No missing children!</h3>
+                                        <h3 style="margin-top: -20px;" class="display-1">{{ $t('dashboard.no_missing_children') }}</h3>
                                     </v-layout>
                                 </v-flex>
                             </v-layout>
@@ -287,7 +287,7 @@ export default {
         },
         loadFacilityCase(facilityCaseObject) {
             this.$router.push({
-                name: 'manage_facility_child',
+                name: 'case',
                 params: { id: facilityCaseObject.id },
             });
         },

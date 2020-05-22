@@ -17,7 +17,7 @@
                             </div>
                             <div style="color: gray; fontSize: 12px; text-align: right; margin-top: -5px;"
                                  class="text-lowercase">
-                                Network Manager
+                                Facility Manager
                             </div>
                         </span>
                         <v-icon>keyboard_arrow_down</v-icon>
@@ -159,7 +159,7 @@ export default {
     mixins: [dates, filters, fonts],
     data: () => ({
         isLoaded: false,
-        caseObject: null,
+        caseObject: {},
         tabs: false,
         tab: null,
         userObject: null,
@@ -175,14 +175,20 @@ export default {
                 icon: 'dashboard',
                 text: 'Dashboard',
                 routerLink: '/',
-            },
-            {
+            }, {
                 isActive: false,
                 isEnabled: true,
                 icon: 'list',
-                text: 'Case Management',
+                text: 'Manage facility',
                 routerLink: '/cases',
             },
+            // {
+            //     isActive: false,
+            //     isEnabled: true,
+            //     icon: 'list',
+            //     text: 'Children registry',
+            //     routerLink: '/children_registry',
+            // },
         ],
     }),
     computed: {
@@ -209,9 +215,10 @@ export default {
             },
         },
     },
-    created() {
-        this.loadData();
+    async created() {
+        await this.loadData();
         this.initEvents();
+        this.isLoaded = true;
     },
     methods: {
         async invalidateToolbar() {
@@ -257,7 +264,6 @@ export default {
             this.$store.commit(SET_ROLE, { response: userObject });
             this.$store.commit(SET_ORGANIZATION, { response: organizationObject });
             this.$store.commit(SET_FACILITY, { response: userObject });
-            this.isLoaded = true;
         },
         initEvents() {
             bus.$off('reload-layout-event');

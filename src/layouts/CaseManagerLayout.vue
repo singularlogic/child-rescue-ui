@@ -36,14 +36,14 @@
                 <v-tabs v-model="tab" color="transparent" align-with-title class="ml-0 pl-0">
                     <v-tabs-slider color="#FBA621" />
                     <v-tab :ripple="false" :to="`/cases/${$route.params.id}/info`">Case</v-tab>
-                    <!-- <v-tab :ripple="false" :to="`/cases/${$route.params.id}/additional-info`">Additional info</v-tab> -->
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/alerts`">Alerts</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/feedbacks`">Facts</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/volunteers`">Volunteers</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/files`">Files</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/places`">Places</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/control`">Control</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/analytics`">Analytics</v-tab>
+                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/additional-info`">Additional info</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/alerts`">Alerts</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/feedbacks`">Facts</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/volunteers`">Volunteers</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/files`">Files</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/places`">Places</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/control`">Control</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/analytics`">Analytics</v-tab>
                 </v-tabs>
             </template>
         </v-toolbar>
@@ -182,25 +182,6 @@ export default {
                 icon: 'list',
                 text: 'Case Management',
                 routerLink: '/cases',
-            },
-            {
-                isActive: false,
-                isEnabled: false,
-                icon: 'map',
-                text: 'Collaboration spaces',
-                routerLink: '',
-            }, {
-                isActive: true,
-                isEnabled: true,
-                icon: 'notification_important',
-                text: 'Alerts',
-                routerLink: '/alerts',
-            }, {
-                isActive: false,
-                isEnabled: false,
-                icon: 'assessment',
-                text: 'Analytics',
-                routerLink: '',
             }, {
                 isActive: false,
                 isEnabled: false,

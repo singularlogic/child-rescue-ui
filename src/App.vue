@@ -5,18 +5,19 @@
 </template>
 
 <script>
-import { AppLayout, EmptyLayout, OrganizationManagerLayout, NetworkManagerLayout, CaseManagerLayout, CoordinatorLayout } from '@/layouts';
+import { AppLayout, EmptyLayout, OrganizationManagerLayout, NetworkManagerLayout, CaseManagerLayout, CoordinatorLayout, FacilityManagerLayout } from '@/layouts';
 
 export default {
     name: 'App',
-    components: { AppLayout, OrganizationManagerLayout, NetworkManagerLayout, EmptyLayout, CaseManagerLayout, CoordinatorLayout },
+    components: { AppLayout, OrganizationManagerLayout, NetworkManagerLayout, EmptyLayout, CaseManagerLayout, CoordinatorLayout, FacilityManagerLayout },
     computed: {
         layout() {
             switch (this.$route.name) {
             case 'error404':
             case 'error500':
             case 'login':
-            case 'forgotPassword':
+            case 'forget_password':
+            case 'reset_password':
             case null: // To avoid displaying dashboard temporarily before loading the correct route
                 return EmptyLayout;
             default:
@@ -29,6 +30,8 @@ export default {
                     return NetworkManagerLayout;
                 case 'case_manager':
                     return CaseManagerLayout;
+                case 'facility_manager':
+                    return FacilityManagerLayout;
                 case null:
                     return EmptyLayout;
                 default:
