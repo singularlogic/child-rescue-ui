@@ -14,11 +14,12 @@
                             </v-flex>
                             <v-flex xs12 sm12 md6 lg6 xl6>
                                 <div style="margin: 15%;">
-                                    <v-form ref="emailForm" v-model="valid" lazy-validation @submit.prevent>
-                                        <h2>{{ $t('forget_password.title') }}</h2>
-                                        <v-text-field v-model="email" type="email" label="Email" prepend-icon="email" ref="emailField" :rules="[rules.required, rules.email]" @keyup.enter.native="validate"></v-text-field>
-                                        <v-btn block large color="#FFA500" dark @click="validate()">{{ $t('forget_password.reset') }}</v-btn>
-                                        <a href="/login/">{{ $t('forget_password.go_to_login') }}</a>
+                                    <v-form ref="passwordForm" v-model="valid" lazy-validation @submit.prevent>
+                                        <h2>{{ $t('reset_password.set_new') }}</h2>
+                                        <v-text-field v-model="password" type="password" :label="$t('reset_password.password')" prepend-icon="lock" ref="passwordField" :rules="[rules.required, rules.password]" @keyup.enter.native="validate"></v-text-field>
+                                        <v-text-field v-model="verifyPassword" type="password" :label="$t('reset_password.verify_password')" prepend-icon="lock" ref="verifyPasswordField" :rules="[rules.required, rules.verifyPassword]" @keyup.enter.native="validate"></v-text-field>
+                                        <v-btn block large color="#FFA500" dark @click="validate()">{{ $t('reset_password.save_password') }}</v-btn>
+                                        <a href="/login/">{{ $t('reset_password.go_to_login') }}</a>
                                     </v-form>
                                 </div>
                             </v-flex>
@@ -38,40 +39,44 @@ export default {
     name: 'Forget Password',
     data() {
         return {
-            email: null,
+            uid: null,
+            token: null,
+            password: null,
+            verifyPassword: null,
             valid: true,
             rules: {
-                required: value => !!value || this.$t('forget_password.rules_required'),
-                email: value => (value && /.+@.+/.test(value)) || this.$t('forget_password.rules_email'),
+                required: value => !!value || this.$t('reset_password.rules_required'),
+                password: value => (value && /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])\w{6,}$/.test(value)) || this.$t('reset_password.rules_password'),
+                verifyPassword: value => (value && value === this.password) || this.$t('reset_password.rules_match_password'),
             },
         };
     },
+    created() {
+        const { uid } = this.$route.query;
+        const { token } = this.$route.query;
+        this.uid = uid;
+        this.token = token;
+    },
     mounted() {
-        this.$refs.emailField.focus();
+        this.$refs.passwordField.focus();
     },
     methods: {
         validate() {
-            if (this.$refs.emailForm.validate()) {
-                this.sendEmail();
+            if (this.$refs.passwordForm.validate()) {
+                this.savePassword();
             }
         },
         reset() {
-            this.$refs.emailForm.reset();
+            this.$refs.passwordForm.reset();
         },
-        async sendEmail() {
+        async savePassword() {
             try {
-                const { data: response } = await UsersApi.forgotPassword({ email: this.email });
-                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('forget_password.success'), color: 'green' });
+                const { data: response } = await UsersApi.resetPassword({ uid: this.uid, password: this.password, token: this.token });
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('reset_password.success'), color: 'green' });
                 this.reset();
             } catch (e) {
                 console.log(e);
-                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('forget_password.error'), color: 'error' });
-            }
-        },
-        login(event) {
-            const instance = this;
-            if (event.keyCode === 13) {
-                instance.sendEmail();
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('reset_password.error'), color: 'error' });
             }
         },
     },

@@ -36,7 +36,7 @@
                             <v-list-tile-title>{{ organization.phone }}</v-list-tile-title>
                             <v-list-tile-sub-title>{{ $t('organization.phone') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.phone" :hint="$t('organization.phone_hint')" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.phone" :hint="$t('organization.phone_hint')" persistent-hint :rules="[rules.phone]"></v-text-field>
                         <v-list-tile-action v-if="isViewMode">
                             <!-- <v-icon>chat</v-icon> -->
                         </v-list-tile-action>
@@ -59,7 +59,7 @@
                             <v-list-tile-title>{{ organization.address }}</v-list-tile-title>
                             <v-list-tile-sub-title>{{ $t('organization.address') }}</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.address" :hint="$t('organization.address_hint')" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.address" :hint="$t('organization.address_hint')" persistent-hint :rules="[rules.address]"></v-text-field>
                     </v-list-tile>
                     <v-divider v-if="isViewMode" inset></v-divider>
                     <v-list-tile @click="">
@@ -70,7 +70,7 @@
                             <v-list-tile-title>{{ organization.facebook }}</v-list-tile-title>
                             <v-list-tile-sub-title>Facebook</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.facebook" hint="Facebook" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.facebook" hint="Facebook" persistent-hint :rules="[rules.social]"></v-text-field>
                     </v-list-tile>
                     <v-list-tile @click="">
                         <v-list-tile-action>
@@ -79,7 +79,7 @@
                             <v-list-tile-title>{{ organization.instagram }}</v-list-tile-title>
                             <v-list-tile-sub-title>Instagram</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.instagram" hint="Instagram" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.instagram" hint="Instagram" persistent-hint :rules="[rules.social]"></v-text-field>
                     </v-list-tile>
                     <v-list-tile @click="">
                         <v-list-tile-action>
@@ -88,7 +88,7 @@
                             <v-list-tile-title>{{ organization.twitter }}</v-list-tile-title>
                             <v-list-tile-sub-title>Twitter</v-list-tile-sub-title>
                         </v-list-tile-content>
-                        <v-text-field v-if="!isViewMode" v-model="organization.twitter" hint="Twitter" persistent-hint></v-text-field>
+                        <v-text-field v-if="!isViewMode" v-model="organization.twitter" hint="Twitter" persistent-hint :rules="[rules.social]"></v-text-field>
                     </v-list-tile>
                     <v-divider v-if="isViewMode" inset></v-divider>
                     <v-list-tile @click="">
@@ -104,6 +104,7 @@
                             v-model="organization.how_to_become_volunteer"
                             rows="1" row-height="30px"
                             :hint="$t('organization.how_to_hint')"
+                             :rules="[rules.description]"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                     <v-list-tile @click="">
@@ -118,6 +119,7 @@
                             v-model="organization.description"
                             rows="1" row-height="30px"
                             :hint="$t('organization.description')"
+                             :rules="[rules.description]"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                     <v-list-tile @click="">
@@ -131,7 +133,8 @@
                             v-if="!isViewMode"
                             v-model="organization.missing_child_actions"
                             rows="1" row-height="30px"
-                            :hint="$t('organization.missing_achild_hint')"
+                            :hint="$t('organization.missing_child_hint')"
+                             :rules="[rules.description]"
                             no-resize persistent-hint></v-textarea>
                     </v-list-tile>
                 </v-list>
@@ -156,6 +159,13 @@ export default {
             isLoaded: false,
             isViewMode: true,
             organization: null,
+            rules: {
+                required: value => !!value || this.$t('feed.rules_required'),
+                phone: value => value && value.length >= 10 && value.length <= 14 || this.$t('organization.rules_phone'),
+                address: value => value && value.length <= 256 || this.$t('organization.rules_address'),
+                social: value => value && value.length <= 128 || this.$t('organization.rules_social'),
+                description: value => value && value.length <= 4056 || this.$t('organization.rules_description'),
+            },
         };
     },
     computed: {

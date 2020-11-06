@@ -1,26 +1,24 @@
-import moment from 'moment';
+import moment from "moment";
 
 export default {
     filters: {
         formatDateTime(value) {
             if (value !== null) {
-                return moment(String(value))
-                    .format('YYYY-MM-DD HH:mm:ss');
+                return moment(String(value)).format("YYYY-MM-DD HH:mm:ss");
             }
-            return 'unknown';
+            return "unknown";
         },
         formatDateTimeMinutes(value) {
-            if (value !== null && value !== '') {
-                return moment(String(value))
-                    .format('YYYY-MM-DD HH:MM');
+            if (value !== null && value !== "") {
+                return moment(String(value)).format("YYYY-MM-DD HH:MM");
             }
-            return '-';
+            return "-";
         },
         formatDate(value) {
-            return moment(String(value)).format('YYYY-MM-DD');
+            return moment(String(value)).format("YYYY-MM-DD");
         },
         formatTime(value) {
-            return moment(String(value)).format('hh:mm:ss');
-        },
-    },
+            return moment(String(value)).format("hh:mm:ss");
+        }
+    }
 };

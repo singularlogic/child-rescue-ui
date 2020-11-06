@@ -50,6 +50,12 @@ export default {
             },
         };
     },
+    async created() {
+        if (this.$store.state.token !== null) {
+            await UsersApi.logout();
+            this.$store.commit(CLEAR_TOKEN);
+        }
+    },
     mounted() {
         this.$refs.emailField.focus();
     },
@@ -66,15 +72,18 @@ export default {
             try {
                 const { data: loginResponse } = await UsersApi.login(this.user);
                 this.$store.commit(SET_TOKEN, { loginResponse });
-                const { data: userObject } = await UsersApi.get();
-                this.userObject = userObject;
-                const el = ['organization_manager', 'coordinator', 'case_manager', 'facility_manager', 'network_manager'].includes(this.userObject.role);
-                if (el) {
-                    this.$store.commit(SET_ROLE, { response: userObject });
-                    this.$router.push({ name: 'dashboard' });
-                } else {
-                    this.$store.commit(SET_SNACKBAR_STATUS, { message: `[${this.userObject.role}] user, has no access in the platform!`, color: 'error' });
-                    this.$store.commit(CLEAR_TOKEN);
+                if (loginResponse.access_token !== null) {
+                    const { data: userObject } = await UsersApi.get();
+                    this.userObject = userObject;
+
+                    const el = ['organization_manager', 'coordinator', 'case_manager', 'facility_manager', 'network_manager'].includes(this.userObject.role);
+                    if (el) {
+                        this.$store.commit(SET_ROLE, { response: userObject });
+                        this.$router.push({ name: 'dashboard' });
+                    } else {
+                        this.$store.commit(SET_SNACKBAR_STATUS, { message: `[${this.userObject.role}] user, has no access in the platform!`, color: 'error' });
+                        this.$store.commit(CLEAR_TOKEN);
+                    }
                 }
             } catch (e) {
                 console.log(e);

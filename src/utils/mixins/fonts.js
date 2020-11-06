@@ -1,9 +1,21 @@
 export default {
     methods: {
         isMainFact(fact) {
-            if (fact) {
-                return "red";
+            if (fact.feedback_status === "pending") {
+                return "#ffd4d4";
             }
+            // if (fact.feedback_status === "relevant") {
+            //     return "#d4ffdd";
+            // }
+            // if (fact.feedback_status === "irrelevant") {
+            //     return "#bfbfbf";
+            // }
+            // if (fact.feedback_status === "credible") {
+            //     return "#d6fffe";
+            // }
+            // if (fact.feedback_status === "spam") {
+            //     return "#dbdbdb";
+            // }
             return "";
         },
         getRoleColor(role) {

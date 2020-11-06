@@ -135,14 +135,14 @@
                                 <v-icon color="primary">lock</v-icon>
                             </v-list-tile-action>
 
-                            <v-text-field ref="newPasswordField" v-model="newPassword" :label="$t('profile.new_password')" class="mr-2" :rules="[rules.required, rules.newPassword]"></v-text-field>
-                            <v-text-field v-model="newPasswordVerification" :label="$t('profile.verify_password')" class="ml-2" :rules="[rules.required, rules.newPasswordVerification]"></v-text-field>
+                            <v-text-field ref="newPasswordField" v-model="newPassword" type="password" :label="$t('profile.new_password')" class="mr-2" :rules="[rules.required, rules.newPassword]"></v-text-field>
+                            <v-text-field v-model="newPasswordVerification" type="password" :label="$t('profile.verify_password')" class="ml-2" :rules="[rules.required, rules.newPasswordVerification]"></v-text-field>
                         </v-list-tile>
                         <v-list-tile @click="">
                             <v-list-tile-action>
                                 <v-icon color="primary">lock</v-icon>
                             </v-list-tile-action>
-                            <v-text-field v-model="oldPassword" :label="$t('profile.old_password')" class="mr-2" :rules="[rules.required, rules.oldPassword]"></v-text-field>
+                            <v-text-field v-model="oldPassword" :label="$t('profile.old_password')" type="password" class="mr-2" :rules="[rules.required, rules.oldPassword]"></v-text-field>
                             <v-btn dark color="primary" class="mr-2" v-on="on" @click="validateChangePassword()">{{ $t('profile.update') }}</v-btn>
                         </v-list-tile>
                     </v-list>

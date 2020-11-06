@@ -6,12 +6,27 @@ export default {
     children: params => secured.get(`${resource}/children/`, { params }),
     getChild: childId => secured.get(`${resource}/children/${childId}/`),
 
+    dashboard: params => secured.get(`${resource}/dashboard`, { params }),
     all: params => secured.get(`${resource}/`, { params }),
+    shared_organizations: params =>
+        secured.get(`${resource}/shared_organizations/`, { params }),
+    shared_to_organizations: (payload, params) =>
+        secured.post(`${resource}/shared_organizations/`, payload, { params }),
+    anonymized: () => secured.get(`${resource}/anonymized-cases/`),
+    anonymizedCase: id => secured.get(`${resource}/anonymized-case/${id}/`),
 
     getSimilarCases: caseId =>
         secured.get(`${resource}/${caseId}/similar_cases/`),
+    getLinkedCases: caseId =>
+        secured.get(`${resource}/${caseId}/linked_cases/`),
+    linkCase: (caseId, payload) =>
+        secured.post(`${resource}/${caseId}/linked_cases/`, payload),
+    unlinkCase: (caseId, linkedCase) =>
+        secured.delete(`${resource}/${caseId}/linked_cases/${linkedCase}/`),
     getActiveCases: params =>
         secured.get(`${resource}/?is_active=true`, { params }),
+    getActiveVolunteers: () => secured.get(`${resource}/active_volunteers/`),
+    getNumberOfPlaces: () => secured.get(`${resource}/number_of_places/`),
     create: payload => secured.post(`${resource}/`, payload),
     edit: (caseId, payload) => secured.patch(`${resource}/${caseId}/`, payload),
     get: (caseId, params) => secured.get(`${resource}/${caseId}/`, { params }),
@@ -24,10 +39,13 @@ export default {
         secured.post(`${resource}/facility_cases/`, payload),
     setState: (caseId, params) =>
         secured.get(`${resource}/facility_cases/${caseId}/state/`, { params }),
-    reportMissing: caseId =>
-        secured.get(`${resource}/facility_cases/${caseId}/report_missing/`),
-
-    close: caseId => secured.post(`${resource}/${caseId}/close_case/`),
+    reportMissing: (caseId, payload) =>
+        secured.post(
+            `${resource}/facility_cases/${caseId}/report_missing/`,
+            payload
+        ),
+    close: (caseId, payload) =>
+        secured.post(`${resource}/${caseId}/close_case/`, payload),
     archive: caseId => secured.get(`${resource}/${caseId}/archive_case/`),
     // updateImage: (id, payload) => secured.post(`${resource}/upload_image/`, payload),
     updateImage: (caseId, payload, headers) =>
@@ -72,5 +90,7 @@ export default {
     createPost: (caseId, payload) =>
         secured.post(`${resource}/${caseId}/feed/`, payload),
     uploadPostImage: (caseId, postId, payload, headers) =>
-        secured.put(`${resource}/${caseId}/feed/${postId}/`, payload, headers)
+        secured.put(`${resource}/${caseId}/feed/${postId}/`, payload, headers),
+    deactivateAlerts: caseId =>
+        secured.post(`${resource}/${caseId}/deactivate_alerts/`)
 };

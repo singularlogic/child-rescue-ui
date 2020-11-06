@@ -1,58 +1,131 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div>
-        <v-card v-if="isLoaded">
-            <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
-                <v-spacer></v-spacer>
-                <v-btn @click="openAddPlaceDialog()" color="primary" dark>{{ $t('places.add_place') }}</v-btn>
-            </v-toolbar>
-            <v-data-table :headers="headers" :items="places" :search="search" :pagination.sync="pagination" height="500px;">
-                <template v-slot:items="props">
-                    <tr>
-                        <td class="text-xs-left">{{ props.item.id }}</td>
-                        <td class="text-xs-left">{{ props.item.address || ' - ' | title }}</td>
-                        <td class="text-xs-left">{{ props.item.tag || ' - ' | customTitle('_') }}</td>
-                        <td class="text-xs-left">{{ props.item.source || ' - ' | title }}</td>
-                        <td class="text-xs-left">{{ props.item.description || ' - ' | title | truncate(30) }}</td>
-                        <td class="text-xs-left">{{ props.item.evaluation.toFixed(2) || ' - '  }}</td>
-                        <td class="text-xs-left">
-                            <v-icon v-if="props.item.is_searched" color="green">check</v-icon>
-                            <v-icon v-else color="error">close</v-icon>
-                        </td>
-                        <td class="justify-center layout px-0">
-                            <template v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'">
-                                <v-icon
-                                    small
-                                    class="mr-2"
-                                    @click.stop="openAddPlaceDialog(props.item)"
-                                >edit</v-icon>
-                                <v-icon
-                                    small
-                                    class="mr-2"
-                                    @click.stop="openRemovePlaceDialog(props.item)"
-                                >delete</v-icon>
-                            </template>
-                        </td>
-                    </tr>
-                </template>
-                <v-alert v-slot:no-results :value="true" color="error" icon="warning">
-                    {{ $t('places.no_results') }}
-                </v-alert>
-            </v-data-table>
-        </v-card>
+    <div v-if="isLoaded" style="padding: 10px;">
+        <v-layout>
+            <v-flex xs12>
+                <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')">
+                    <v-chip v-if="caseObject.organization!==$store.state.organizationId" label dark color="indigo lighten-2">
+                        <v-icon left>folder_shared</v-icon>
+                        <b>{{caseObject.organization_name}}</b>
+                    </v-chip>
+                    <v-chip v-if="caseObject.amber_alert" label dark color="warning">
+                        <v-icon left>warning</v-icon>
+                        <b>{{ $t('case_info.amber_alert') }}</b>
+                    </v-chip>
+                    <v-chip v-if="caseObject.status === 'active'" label dark color="blue-grey darken-3">
+                        <v-icon left>person_search</v-icon>
+                        <b>Missing</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'present'" label dark color="green">
+                        <v-icon left>person</v-icon>
+                        <b>Present</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'not_present'" label dark color="#2FD1D4">
+                        <v-icon left>person</v-icon>
+                        <b>Not Present</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'transit'" label dark color="#800080">
+                        <v-icon left>person</v-icon>
+                        <b>Not Present</b>
+                    </v-chip>
+                    <v-spacer></v-spacer>
+                    <v-btn flat dark color="primary" @click="openAddPlaceDialog()">
+                        {{ $t('places.add_place') }}
+                        <v-icon right>add_location</v-icon>
+                    </v-btn>
+                </v-toolbar>
+                <v-toolbar v-if="caseObject.status==='closed' && this.$store.state.role!=='facility_manager' && caseObject.organization===$store.state.organizationId">
+                    <v-chip label dark color="teal darken-5">
+                        <v-icon left>search_off</v-icon>
+                        <b>{{ caseObject.status | title }}</b>
+                    </v-chip>
+                    <v-spacer></v-spacer>
+                </v-toolbar>
+                <br/>
+                <v-card color="grey lighten-5" class="mb-2" style="padding: 5px;">
+                    <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
+                        <v-toolbar-title>{{ $t('places.places_title') }}</v-toolbar-title>
+                    </v-toolbar>
+                    <v-data-table :headers="headers" :items="places" :search="search" :pagination.sync="paginationPlaces" height="500px;">
+                        <template v-slot:items="props">
+                            <tr>
+                                <td class="text-xs-left">{{ props.item.id }}</td>
+                                <td class="text-xs-left">{{ props.item.address || ' - ' | title }}</td>
+                                <td class="text-xs-left">{{ props.item.tag || ' - ' | customTitle('_') }}</td>
+                                <td class="text-xs-left">{{ props.item.source || ' - ' | title }}</td>
+                                <td class="text-xs-left">{{ props.item.description || ' - ' | title | truncate(30) }}</td>
+                                <td class="text-xs-left">{{ props.item.evaluation.toFixed(2) || ' - '  }}</td>
+                                <td class="text-xs-left">
+                                    <v-icon v-if="props.item.is_searched" color="green">check</v-icon>
+                                    <v-icon v-else color="error">close</v-icon>
+                                </td>
+                                <td class="justify-center layout px-0" v-if="$store.state.role!=='facility_manager' && (caseObject.status==='active' || caseObject.status==='inactive')">
+                                    <!-- <template v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'"> -->
+                                    <template v-if="caseObject.status!='closed'">
+                                        <v-icon
+                                            small
+                                            class="mr-2"
+                                            @click.stop="openAddPlaceDialog(props.item)"
+                                        >edit</v-icon>
+                                        <v-icon
+                                            small
+                                            class="mr-2"
+                                            @click.stop="openRemovePlaceDialog(props.item)"
+                                        >delete</v-icon>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                        <v-alert v-slot:no-results :value="true" color="error" icon="warning">
+                            {{ $t('places.no_results') }}
+                        </v-alert>
+                    </v-data-table>
+                </v-card>
+                <v-card color="grey lighten-5" class="mb-5" style="padding: 15px;">
+                    <v-toolbar v-if="$caseManagerAndAbove.includes($store.state.role) && (caseObject.status==='active' || caseObject.status==='inactive')" dense flat color="white">
+                        <v-toolbar-title>{{ $t('places.social_title') }}</v-toolbar-title>
+                    </v-toolbar>
+                    <v-data-table :headers="social_headers" :items="events" :search="search" :pagination.sync="paginationEvents" height="500px;">
+                        <template v-slot:items="props">
+                            <tr>
+                                <td class="text-xs-left">{{ props.item.id }}</td>
+                                <td class="text-xs-left">{{ props.item.address || ' - ' | title }}</td>
+                                <td class="text-xs-left">{{ `social` }}</td>
+                                <td class="text-xs-left">{{ `social` }}</td>
+                                <td class="text-xs-left">{{ props.item.description || ' - ' | title | truncate(30) }}</td>
+                                <td class="justify-center layout px-0">
+                                    <!-- <template v-if="$caseManagerAndAbove.includes($store.state.role) && caseObject.status!='closed'"> -->
+                                    <template v-if="caseObject.status!='closed'">
+                                        <v-btn @click="convert(props.item)" flat color="primary">Add to places</v-btn>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                        <v-alert v-slot:no-results :value="true" color="error" icon="warning">
+                            {{ $t('places.no_results') }}
+                        </v-alert>
+                    </v-data-table>
+                </v-card>
+            </v-flex>
+        </v-layout>
         <v-dialog v-model="editPlaceDialog" width="700">
             <v-card>
-                <v-toolbar flat color="white">
+                <v-toolbar flat>
                     <v-toolbar-title v-if="place.id">{{ $t('places.update_place') }}</v-toolbar-title>
                     <v-toolbar-title v-else>{{ $t('places.new_place') }}</v-toolbar-title>
                 </v-toolbar>
                 <v-card-text class="mt-0 pt-0">
                     <v-form ref="placeForm" v-model="valid" lazy-validation @submit.prevent>
-                        <v-layout row wrap>
+                        <v-layout row wrap v-if="place.source !== 'facts' && place.source !== 'event'">
                             <v-flex xs12 sm6 class='px-2'>
                                 <v-select :items="tags" v-model="place.tag" :label="$t('places.select_tag')" prepend-icon="label"/>
                             </v-flex>
                             <v-flex xs12 sm6 class='px-2'>
                                 <v-select :items="sources" v-model="place.source" :label="$t('places.select_source')" prepend-icon="label"/>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout row wrap v-else>
+                            <v-flex xs12 class='px-2'>
+                                <v-select :items="tags" v-model="place.tag" :label="$t('places.select_tag')" prepend-icon="label"/>
                             </v-flex>
                         </v-layout>
                         <v-layout row wrap>
@@ -117,7 +190,7 @@
         </v-dialog>
         <v-dialog v-model="removePlaceDialog" width="500">
             <v-card>
-                <v-toolbar flat color="white">
+                <v-toolbar flat>
                     <v-toolbar-title>{{ $t('places.remove_place_title') }}</v-toolbar-title>
                 </v-toolbar>
                 <v-divider></v-divider>
@@ -156,6 +229,7 @@
             </v-card>
         </v-dialog>
     </div>
+
 </template>
 
 <script>
@@ -193,8 +267,10 @@ export default {
                 is_searched: false,
             },
             places: [],
+            events: [],
             search: '',
-            pagination: { sortBy: 'start', descending: true, rowsPerPage: 10 },
+            paginationPlaces: { sortBy: 'start', descending: true, rowsPerPage: 5 },
+            paginationEvents: { sortBy: 'start', descending: true, rowsPerPage: 5 },
             headers: [
                 {
                     text: 'ID',
@@ -231,6 +307,41 @@ export default {
                     text: this.$t('places.is_searched'),
                     value: 'is_searched',
                     width: '5%',
+                },
+                {
+                    align: 'center',
+                    sortable: false,
+                    text: this.$t('places.actions'),
+                    value: 'name',
+                    width: '5%',
+                },
+            ],
+            social_headers: [
+                {
+                    text: 'ID',
+                    value: 'id',
+                    width: '5%',
+                },
+                {
+                    text: this.$t('places.address'),
+                    value: 'address',
+                    width: '45%',
+                },
+                {
+                    text: this.$t('places.tag'),
+                    value: 'tag',
+                    width: '5%',
+                },
+                {
+                    text: this.$t('places.source'),
+                    value: 'source',
+                    width: '10%',
+                },
+                {
+                    text: this.$t('places.description'),
+                    align: 'left',
+                    value: 'description',
+                    width: '30%',
                 },
                 {
                     align: 'center',
@@ -287,18 +398,18 @@ export default {
                     text: this.$t('places.sources.testimonials'),
                     value: 'testimonials',
                 },
-                {
-                    text: this.$t('places.sources.facts'),
-                    value: 'facts',
-                },
-                {
-                    text: this.$t('places.sources.analytics'),
-                    value: 'analytics',
-                },
-                {
-                    text: this.$t('places.sources.social_media'),
-                    value: 'social_media',
-                },
+                // {
+                //     text: this.$t('places.sources.facts'),
+                //     value: 'facts',
+                // },
+                // {
+                //     text: this.$t('places.sources.analytics'),
+                //     value: 'analytics',
+                // },
+                // {
+                //     text: this.$t('places.sources.social_media'),
+                //     value: 'social_media',
+                // },
                 {
                     text: this.$t('places.sources.other'),
                     value: 'other',
@@ -314,10 +425,15 @@ export default {
         this.isLoaded = true;
     },
     methods: {
+        async convert(item) {
+            const { data: response } = await PlacesApi.convert(item.id);
+            await this.loadPlaces();
+        },
         async loadPlaces() {
             const { data: places } = await PlacesApi.all({ caseId: this.caseId });
             this.places = places;
-            console.log(places);
+            const { data: events } = await PlacesApi.events({ caseId: this.caseId });
+            this.events = events;
         },
         triggerPlaceChangeEvent() {
             if (this.address && this.address != null && this.address.length >= 3) {
@@ -382,7 +498,6 @@ export default {
             }
         },
         async updatePlace() {
-            console.log(this.place);
             if (this.place.id) {
                 await PlacesApi.update(this.place);
             } else {

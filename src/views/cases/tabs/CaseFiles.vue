@@ -1,11 +1,45 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div>
-        <v-card flat v-if="isLoaded">
-            <v-toolbar dense flat color="white">
-                <v-spacer></v-spacer>
-                <v-btn v-if="caseObject.status==='active' || caseObject.status==='inactive'" @click="openAddFileDialog()" color="primary" dark>Add file</v-btn>
-            </v-toolbar>
-            <v-layout v-if="files.length > 0" fill-height row wrap>
+    <div v-if="isLoaded" style="padding: 10px;">
+        <v-toolbar v-if="caseObject.status==='active' || caseObject.status==='inactive'">
+            <v-chip v-if="caseObject.organization!==$store.state.organizationId" label dark color="indigo lighten-2">
+                <v-icon left>folder_shared</v-icon>
+                <b>{{caseObject.organization_name}}</b>
+            </v-chip>
+            <v-chip v-if="caseObject.amber_alert" label dark color="warning">
+                <v-icon left>warning</v-icon>
+                <b>{{ $t('case_info.amber_alert') }}</b>
+            </v-chip>
+            <v-chip v-if="caseObject.status === 'active'" label dark color="blue-grey darken-3">
+                <v-icon left>person_search</v-icon>
+                <b>Missing</b>
+            </v-chip>
+            <v-chip v-else-if="caseObject.presence_status === 'present'" label dark color="green">
+                <v-icon left>person</v-icon>
+                <b>Present</b>
+            </v-chip>
+            <v-chip v-else-if="caseObject.presence_status === 'not_present'" label dark color="#2FD1D4">
+                <v-icon left>person</v-icon>
+                <b>Not Present</b>
+            </v-chip>
+            <v-chip v-else-if="caseObject.presence_status === 'transit'" label dark color="#800080">
+                <v-icon left>person</v-icon>
+                <b>Not Present</b>
+            </v-chip>
+            <v-spacer></v-spacer>
+            <v-btn flat v-if="caseObject.status==='active' || caseObject.status==='inactive'" @click="openAddFileDialog()" color="primary" dark>
+                {{ $t('case_files.add_files') }}
+                <v-icon right>cloud_upload</v-icon>
+            </v-btn>
+        </v-toolbar>
+        <v-toolbar v-if="caseObject.status==='closed' && this.$store.state.role!=='facility_manager' && caseObject.organization===$store.state.organizationId">
+            <v-chip label dark color="teal darken-5">
+                <v-icon left>search_off</v-icon>
+                <b>{{ caseObject.status | title }}</b>
+            </v-chip>
+        </v-toolbar>
+        <br/>
+        <v-card v-if="files.length > 0" color="grey lighten-4" class="mb-5" style="padding: 15px;">
+            <v-layout fill-height row wrap>
                 <v-flex v-for="(item) in files" :key="item.id" xs12 sm6 md3 lg3 xl2>
                     <v-card class="my-2 mx-2">
                         <v-img :contain="item.image !== null ? false : true" :src="item.image || fileIcon" height="200px">
@@ -24,56 +58,58 @@
                         </v-img>
                         <v-divider></v-divider>
                         <v-card-actions>
-                            <div class='subheading mx-2 my-2'>{{ item.title | truncate(12) | title}}</div>
+                            <div class='subheading mx-2 my-2'><b>{{ item.title | truncate(12) | title}}</b></div>
                             <v-spacer></v-spacer>
                             <v-tooltip bottom>
                                 <template v-slot:activator="{ on }">
-                                    <v-btn v-on="on" icon @click="download(item)">
+                                    <v-btn v-on="on" icon flat dark color="purple darken-3" @click="download(item)">
                                         <v-icon>cloud_download</v-icon>
                                     </v-btn>
                                 </template>
-                                <span>Download</span>
+                                <span>{{ $t('case_files.download') }}</span>
                             </v-tooltip>
                             <v-tooltip bottom>
                                 <template v-slot:activator="{ on }">
-                                    <v-btn v-on="on" icon @click="openDeleteDialog(item)">
+                                    <v-btn v-on="on" icon flat dark color="red darken-3" @click="openDeleteDialog(item)">
                                         <v-icon>delete</v-icon>
                                     </v-btn>
                                 </template>
-                                <span>Delete</span>
+                                <span>{{ $t('case_files.delete') }}</span>
                             </v-tooltip>
                         </v-card-actions>
                     </v-card>
                 </v-flex>
             </v-layout>
-            <v-parallax v-else dark style="background-color: #C3C3C3;">
+        </v-card>
+        <v-card v-else color="grey lighten-1" class="mb-5" style="padding: 15px;">
+            <v-parallax dark>
                 <v-layout align-center column justify-center>
-                    <h1 class="display-2 font-weight-thin mb-3">Collection of case files</h1>
-                    <h4 class="subheading">No files/images attached to case...</h4>
+                    <h1 class="display-2 font-weight-thin mb-3">{{ $t('case_files.collection_of_case_files') }}</h1>
+                    <h4 class="subheading">{{ $t('case_files.no_files') }}</h4>
                 </v-layout>
             </v-parallax>
         </v-card>
         <v-dialog v-model="addFileDialog" width="700">
             <v-card>
-                <v-toolbar flat color="white">
-                    <v-toolbar-title>Add new file for the case</v-toolbar-title>
+                <v-toolbar flat>
+                    <v-toolbar-title>{{ $t('case_files.add_new_file') }}</v-toolbar-title>
                 </v-toolbar>
                 <v-card-text>
                     <v-form ref="fileForm" v-model="valid" lazy-validation @submit.prevent>
                         <v-layout row wrap>
                             <v-flex xs12 sm8 class='px-2'>
-                                <v-text-field ref="titleField" v-model="selectedFile.title" placeholder='File title' label="Title" :rules="[rules.required]" prepend-icon="label"></v-text-field>
+                                <v-text-field ref="titleField" v-model="selectedFile.title" :placeholder="$t('case_files.title')" :label="$t('case_files.title')" :rules="[rules.required]" prepend-icon="label"></v-text-field>
                             </v-flex>
                             <v-flex xs12 sm4 class=px-2>
-                                <v-select ref="fileType" :items="uploadTypes" v-model="uploadType" label="File type"/>
+                                <v-select ref="fileType" :items="uploadTypes" v-model="uploadType" :label="$t('case_files.file_type')"/>
                             </v-flex>
                             <v-flex xs12 class='px-2' v-if="uploadType==='image'">
                                 <v-text-field
                                     v-model="imageName"
                                     :rules="[rules.required]"
-                                    label="File image"
+                                    :label="$t('case_files.file_image')"
                                     :value="selectedFile.image"
-                                    placeholder="Select image"
+                                    :placeholder="$t('case_files.select_image')"
                                     class="header-text-field-input"
                                     color="secondary"
                                     prepend-icon="insert_photo"
@@ -92,9 +128,9 @@
                                 <v-text-field
                                     v-model="imageName"
                                     :rules="[rules.required]"
-                                    label="File"
+                                    :label="$t('case_files.file')"
                                     :value="selectedFile.file"
-                                    placeholder="Select file"
+                                    :placeholder="$t('case_files.file_placeholder')"
                                     class="header-text-field-input"
                                     color="secondary"
                                     prepend-icon="attach_file"
@@ -113,14 +149,14 @@
                 <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="" flat @click="closeAddFileDialog()">Close</v-btn>
-                    <v-btn color="primary" flat @click="validate()">Upload</v-btn>
+                    <v-btn color="" flat @click="closeAddFileDialog()">{{ $t('case_files.close') }}</v-btn>
+                    <v-btn color="primary" flat @click="validate()">{{ $t('case_files.upload') }}</v-btn>
                 </v-card-actions>
             </v-card></v-dialog>
         <v-dialog v-model="deleteFileDialog" width="400">
             <v-card>
                 <v-toolbar flat color="white">
-                    <v-toolbar-title>Delete file from the case</v-toolbar-title>
+                    <v-toolbar-title>{{ $t('case_files.delete_file') }}</v-toolbar-title>
                 </v-toolbar>
                 <v-divider></v-divider>
                 <v-card-text>
@@ -129,13 +165,13 @@
                             <v-layout>
                                 <v-flex xs12 sm6 md6 lg6 xl6>
                                     <v-list-tile-content>
-                                        <v-list-tile-sub-title>Title</v-list-tile-sub-title>
+                                        <v-list-tile-sub-title>{{ $t('case_files.title') }}</v-list-tile-sub-title>
                                         <v-list-tile-title>{{ (selectedFile.title || '') | title }}</v-list-tile-title>
                                     </v-list-tile-content>
                                 </v-flex>
                                 <v-flex xs12 sm6 md6 lg6 xl6>
                                     <v-list-tile-content>
-                                        <v-list-tile-sub-title>Uploaded by</v-list-tile-sub-title>
+                                        <v-list-tile-sub-title>{{ $t('case_files.uploaded_by') }}</v-list-tile-sub-title>
                                         <v-list-tile-title>{{ (selectedFile.first_name || '') | title }} {{ (selectedFile.last_name || '') | title }}</v-list-tile-title>
                                     </v-list-tile-content>
                                 </v-flex>
@@ -146,8 +182,8 @@
                 <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="" flat @click="deleteFileDialog = false; selectedFile={};">Cancel</v-btn>
-                    <v-btn color="error" flat @click="deleteFile()">Remove</v-btn>
+                    <v-btn color="" flat @click="deleteFileDialog = false; selectedFile={};">{{ $t('case_files.cancel') }}</v-btn>
+                    <v-btn color="error" flat @click="deleteFile()">{{ $t('case_files.remove') }}</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -178,16 +214,16 @@ export default {
             imageUrl: require('../../../assets/images/file_ic.png'),
             uploadTypes: [
                 {
-                    text: 'Image',
+                    text: this.$t('case_files.image'),
                     value: 'image',
                 },
                 {
-                    text: 'File',
+                    text: this.$t('case_files.file'),
                     value: 'file',
                 },
             ],
             rules: {
-                required: value => !!value || 'Field is required',
+                required: value => !!value || this.$t('case_files.rules_required'),
             },
         };
     },
@@ -202,24 +238,24 @@ export default {
         },
         getColor: () => (file) => {
             switch (file.tag) {
-            case 'organization_manager': {
-                return 'red';
-            }
-            case 'coordinator': {
-                return 'pink';
-            }
-            case 'network_manager': {
-                return 'blue';
-            }
-            case 'case_manager': {
-                return 'green';
-            }
-            case 'facility_manager': {
-                return 'brown';
-            }
-            default: {
-                return 'gray';
-            }
+                // case 'organization_manager': {
+                //     return 'red';
+                // }
+                // case 'coordinator': {
+                //     return 'pink';
+                // }
+                // case 'network_manager': {
+                //     return 'blue';
+                // }
+                // case 'case_manager': {
+                //     return 'green';
+                // }
+                // case 'facility_manager': {
+                //     return 'brown';
+                // }
+                default: {
+                    return '#bfbfbf';
+                }
             }
         },
     },

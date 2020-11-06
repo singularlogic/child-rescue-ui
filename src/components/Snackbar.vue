@@ -1,7 +1,7 @@
 <template>
     <v-snackbar v-model="show" :color="color" bottom left>
         {{ message }}
-        <v-btn flat @click.native="clear()">Close</v-btn>
+        <v-btn flat @click.native="clear()">{{ $t('snackbar.close') }}</v-btn>
     </v-snackbar>
 </template>
 

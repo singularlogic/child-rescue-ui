@@ -50,6 +50,8 @@
                             :locale="locale"
                             actions
                             class="elevation-0"
+                            :max="getEndDate"
+                            @change="setMaxTime()"
                         >
                         </v-date-picker>
                     </v-tab-item>
@@ -62,6 +64,7 @@
                             scrollable
                             :format="timePickerFormat"
                             actions
+                            :max="max_time"
                         >
                         </v-time-picker>
                     </v-tab-item>
@@ -169,6 +172,8 @@ export default {
     },
     data() {
         return {
+            max_time: null,
+            date: new Date(),
             display: false,
             dateSelected: false,
             timeSelected: false,
@@ -177,6 +182,10 @@ export default {
         };
     },
     computed: {
+        getEndDate() {
+            const endDate = new Date();
+            return endDate.toISOString().slice(0, 10);
+        },
         datePart: {
             get() {
                 const val = this.selectedDatetime ? moment(this.selectedDatetime).format(DEFAULT_DATE_FORMAT) : '';
@@ -190,6 +199,7 @@ export default {
                 const minute = this.selectedDatetime ? moment(this.selectedDatetime).minute() : 0;
                 const input = moment().year(date.year()).month(date.month()).date(date.date()).hour(hour).minute(minute).second(0);
                 this.selectedDatetime = input.toDate();
+                // this.getEndTimePart = this.selectedDatetime;
             },
         },
         timePart: {
@@ -217,6 +227,13 @@ export default {
         }
     },
     methods: {
+        setMaxTime() {
+            if (this.selectedDatetime.toString().slice(0, 10) == new Date().toString().slice(0, 10)) {
+                this.max_time = new Date().toString().slice(16);
+            } else {
+                this.max_time = null;
+            }
+        },
         okHandler() {
             this.display = false;
             this.activeTab = 0;

@@ -2,19 +2,21 @@
     <v-dialog v-model="dialogFeedback" persistent max-width="900px" scrollable @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
             <v-btn dark color="red" v-on="on">
-                Missing
+                {{ $t('missing_report.missing') }}
             </v-btn>
         </template>
         <v-card>
             <v-card-title primary-title>
                 <div>
-                    <div v-if="isEditMode" class="headline">Update Fact</div>
+                    <div v-if="isEditMode" class="headline">{{ $t('missing_report.update_fact') }}</div>
                     <div v-else-if="isViewMode" class="headline">Fact: {{ feedbackObject.id }}</div>
-                    <div v-else class="headline">Missing Report</div>
-                    <a @click="goToCase()" style="color: blue;">Case #{{ caseId }} - {{ fullName }}</a>
+                    <div v-else class="headline">{{ $t('missing_report.missing_report') }}</div>
+                    <a @click="goToCase()" style="color: blue;">{{ $t('missing_report.case') }} #{{ caseId }} - {{ fullName }}</a>
+                    <br/>
+                    <span style="font-size: small;">{{ $t('case.required_fields') }}</span>
                 </div>
             </v-card-title>
-            <v-card-text>
+            <v-card-text style="margin-top: -30px;">
                 <v-form ref="form">
                     <v-layout row wrap>
                         <v-flex xs12 sm12 md12 lg12 xl12>
@@ -24,16 +26,17 @@
                                         ref="addressField"
                                         v-model="place"
                                         :rules="[rules.address, rules.required]"
-                                        label="Address"
-                                        hint="Type the address and then hit enter"
+                                        :label="$t('missing_report.star_address')"
+                                        :hint="$t('missing_report.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"
                                         class="textField"
+                                        style="margin-left:5px; margin-bottom: 5px;"
                                         @change="validateForm()"
                                         @keyup.enter.native="triggerPlaceChangeEvent(place)"/>
                                 </v-flex>
                                 <v-flex xs12 sm2 md2 lg2 xl2>
-                                    <v-btn dark color="primary" @click="triggerPlaceChangeEvent(place)">Find address</v-btn>
+                                    <v-btn dark color="primary" style="margin-top: 12px;" @click="triggerPlaceChangeEvent(place)">{{ $t('missing_report.find_address') }}</v-btn>
                                 </v-flex>
                                 <v-flex xs12 sm12 md12 lg12 xl12 style="margin: 0px 10px 0px 10px">
                                     <gmap-map :center="center" :zoom="18" :options="mapOptions"
@@ -49,9 +52,9 @@
                                         ref="addressField"
                                         v-model="place"
                                         :rules="[rules.address, rules.required]"
-                                        label="Address"
                                         :class="{'disable-events': isViewMode, textField }"
-                                        hint="Type the address and then hit enter"
+                                        :label="$t('missing_report.address')"
+                                        :hint="$t('missing_report.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"/>
                                 </v-flex>
@@ -66,45 +69,81 @@
                         </v-flex>
                         <v-flex xs12 sm12 md12 lg12 xl12 style="margin-top: 10px;">
                             <v-layout wrap>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-text-field v-model="feedbackObject.latitude" class="header-text-field-input"
-                                                  label="Latitude" placeholder="-" disabled style="padding: 5px;"
-                                                  prepend-icon="my_location"/>
-                                </v-flex>
-                                <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <v-text-field v-model="feedbackObject.longitude" class="header-text-field-input"
-                                                  label="Longitude" placeholder="-" disabled style="padding: 5px;"
-                                                  prepend-icon="my_location"/>
-                                </v-flex>
                                 <v-flex v-if="feedbackObject.feedback_image" xs12 sm12 md12 lg12 xl12>
                                     <v-img :src="feedbackObject.feedback_image" style="padding: 10px; margin-bottom: 15px;"/>
                                 </v-flex>
                                 <v-flex xs12 sm12 md6 lg6 xl6>
                                     <v-text-field v-model="feedbackObject.source" :class="{'disable-events': isViewMode}"
-                                                  :rules="[rules.required]" label="Source" placeholder="source"
-                                                  style="padding: 5px;" prepend-icon="user" @change="validateForm()"/>
+                                                  :rules="[rules.required]" :label="$t('missing_report.star_source')"
+                                                  style="padding: 5px;" prepend-icon="account_box" @change="validateForm()"/>
                                 </v-flex>
                                 <v-flex xs12 sm12 md6 lg6 xl6>
                                     <v-select :items="feedbackStatuses" v-model="feedbackObject.feedback_status" :class="{'disable-events': isViewMode}"
-                                              :rules="[rules.required]" label="Status" style="padding: 5px;"
+                                              :rules="[rules.required]" :label="$t('missing_report.star_status')" style="padding: 5px;"
                                               @change="validateForm()"/>
                                 </v-flex>
                                 <v-flex xs12 sm12 md6 lg6 xl6>
-                                    <date-time-picker v-model="feedbackObject.date" label="Date and time of incident" prepend-icon="access_time"
+                                    <date-time-picker v-model="feedbackObject.date" :label="$t('missing_report.star_datetime')" prepend-icon="access_time" style="margin-left: 5px;"
                                                       :class="{'disable-events': isViewMode}" :rules="[rules.required]" @input="validateForm()"></date-time-picker>
                                 </v-flex>
                                 <v-flex xs12 sm12 md3 lg3 xl3>
                                     <v-select :items="childStatuses" v-model="feedbackObject.child_status" :class="{'disable-events': isViewMode}"
-                                              label="Child status" style="padding: 5px;"/>
+                                              :label="$t('missing_report.child_status')" style="padding: 5px; margin-top:7px;"/>
                                 </v-flex>
                                 <v-flex xs12 sm12 md3 lg3 xl3>
                                     <v-select :items="transportationChoices" v-model="feedbackObject.transportation" :class="{'disable-events': isViewMode}"
-                                              label="Transportation" style="padding: 5px;"/>
+                                              :label="$t('missing_report.transportation')" style="padding: 5px; margin-top:7px;"/>
                                 </v-flex>
                                 <v-flex xs12 sm12 md12 lg12 xl12>
-                                    <v-textarea v-model="feedbackObject.comment" name="input-7-1" box label="Comment"
-                                                rows="3" :class="{'disable-events': isViewMode}"
-                                                placeholder="Describe the situation please..." auto-grow/>
+                                    <v-textarea v-model="feedbackObject.comment" name="input-7-1" box :label="$t('missing_report.comment')"
+                                                rows="3" :class="{'disable-events': isViewMode}" style="padding: 5px 5px;"
+                                                :placeholder="$t('missing_report.comment_placeholder')" auto-grow/>
+                                </v-flex>
+                                <v-flex xs12 sm12 md3>
+                                    <v-select :items="mobileOptions"
+                                              v-model="caseObject.has_mobile_phone"
+                                              :label="$t('case.has_mobile')"
+                                              style="padding: 5px 10px;">
+                                    </v-select>
+                                </v-flex>
+                                <v-flex xs12 sm12 md3>
+                                    <v-select :items="moneyOptions"
+                                              v-model="caseObject.has_money_or_credit"
+                                              :label="$t('case.has_money')"
+                                              style="padding: 5px 10px;">
+                                    </v-select>
+                                </v-flex>
+                                <v-flex xs12 sm12 md3>
+                                    <v-select :items="booleanOptions"
+                                              v-model="caseObject.has_area_knowledge"
+                                              :label="$t('case.has_area_knowledge')"
+                                              style="padding: 5px 10px;">
+                                    </v-select>
+                                </v-flex>
+                                <v-flex xs12 sm12 md3>
+                                    <v-select :items="booleanOptions"
+                                              v-model="caseObject.clothing_with_scent"
+                                              :label="$t('case.scent')"
+                                              style="padding: 5px 10px;">
+                                    </v-select>
+                                </v-flex>
+                                <v-flex xs12 sm12 md3>
+                                    <v-select :items="booleanOptions"
+                                              v-model="caseObject.is_first_time_missing"
+                                              :label="$t('case.first_time_miss')"
+                                              style="padding: 5px 10px;">
+                                    </v-select>
+                                </v-flex>
+                                <v-flex xs12 sm12 md9>
+                                    <v-textarea name="input-7-1"
+                                                v-model="caseObject.transit_country" box
+                                                :label="$t('case.transit_country')"
+                                                :placeholder="$t('case.transit_country_placeholder')"
+                                                auto-grow
+                                                rows="2"
+                                                style="padding: 5px 10px;"
+                                                counter maxlength="1000">
+                                    </v-textarea>
                                 </v-flex>
                             </v-layout>
                         </v-flex>
@@ -113,8 +152,8 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer/>
-                <v-btn color="blue darken-1" flat @click="cancel()">Close</v-btn>
-                <v-btn v-if="!isViewMode" :disabled="!isFormValid" color="red darken-1" flat @click="save()">Declare missing child</v-btn>
+                <v-btn color="blue darken-1" flat @click="cancel()">{{ $t('missing_report.close') }}</v-btn>
+                <v-btn v-if="!isViewMode" :disabled="!isFormValid" color="red darken-1" flat @click="save()">{{ $t('missing_report.declare_missing_child') }}</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -153,12 +192,13 @@ export default {
             isViewMode: false,
             isEditMode: false,
             feedbackObject: {},
+            caseObject: {},
             isFormValid: false,
             place: null,
             dialogFeedback: false,
             rules: {
-                required: value => !!value || 'Field is required',
-                address: value => value && value.length > 5 && value.length < 250 || 'Address must be between 5 and 50 characters',
+                required: value => !!value || this.$t('missing_report.rules_required'),
+                address: value => value && value.length > 5 && value.length < 250 || this.$t('missing_report.rules_address'),
             },
             feedbackStatuses: [
                 'pending', 'relevant', 'irrelevant', 'credible',
@@ -169,57 +209,115 @@ export default {
                     value: 'ok',
                 },
                 {
-                    text: 'Appearance change (clothes, haircut, etc)',
+                    text: this.$t('missing_report.appearance_change'),
                     value: 'appearance_change',
                 },
                 {
-                    text: 'Terrified/Shocked',
+                    text: this.$t('missing_report.shocked'),
                     value: 'shocked',
                 },
                 {
-                    text: 'Injured/Sick/Intoxicated',
+                    text: this.$t('missing_report.injured_sick'),
                     value: 'injured_sick',
                 },
                 {
-                    text: 'Deceased',
+                    text: this.$t('missing_report.deceased'),
                     value: 'deceased',
                 },
                 {
-                    text: 'Unknown',
+                    text: this.$t('missing_report.unknown'),
                     value: null,
                 },
             ],
             transportationChoices: [
                 {
-                    text: 'Foot',
+                    text: this.$t('missing_report.foot'),
                     value: 'foot',
                 },
                 {
-                    text: 'Bus/Tram',
+                    text: this.$t('missing_report.bus_tram'),
                     value: 'bus_tram',
                 },
                 {
-                    text: 'Car/Motorcycle',
+                    text: this.$t('missing_report.car_motorcycle'),
                     value: 'car_motorcycle',
                 },
                 {
-                    text: 'Train',
+                    text: this.$t('missing_report.train'),
                     value: 'train',
                 },
                 {
-                    text: 'Metro/Subway',
+                    text: this.$t('missing_report.metro_subway'),
                     value: 'metro_subway',
                 },
                 {
-                    text: 'Bicycle/Scooter',
+                    text: this.$t('missing_report.bicycle_scooter'),
                     value: 'bicycle_scooter',
                 },
                 {
-                    text: 'Ship/Aeroplane',
+                    text: this.$t('missing_report.ship_aeroplane'),
                     value: 'ship_aeroplane',
                 },
                 {
-                    text: 'Unknown',
+                    text: this.$t('missing_report.unknown'),
+                    value: null,
+                },
+            ],
+            booleanOptions: [
+                {
+                    text: this.$t('case.yes_no_choice.yes'),
+                    value: 'yes',
+                },
+                {
+                    text: this.$t('case.yes_no_choice.no'),
+                    value: 'no',
+                },
+                {
+                    text: this.$t('case.yes_no_choice.unknown'),
+                    value: null,
+                },
+            ],
+            mobileOptions: [
+                {
+                    text: this.$t('case.mobile_choice.yes'),
+                    value: 'yes',
+                },
+                {
+                    text: this.$t('case.mobile_choice.deactivated'),
+                    value: 'deactivated',
+                },
+                {
+                    text: this.$t('case.mobile_choice.abductor'),
+                    value: 'abductor',
+                },
+                {
+                    text: this.$t('case.mobile_choice.no'),
+                    value: 'no',
+                },
+                {
+                    text: this.$t('case.mobile_choice.unknown'),
+                    value: null,
+                },
+            ],
+            moneyOptions: [
+                {
+                    text: this.$t('case.money_choice.yes'),
+                    value: 'yes',
+                },
+                {
+                    text: this.$t('case.money_choice.probably_yes'),
+                    value: 'probably_yes',
+                },
+                {
+                    text: this.$t('case.money_choice.probably_no'),
+                    value: 'probably_no',
+                },
+                {
+                    text: this.$t('case.money_choice.no'),
+                    value: 'no',
+                },
+                {
+                    text: this.$t('case.money_choice.unknown'),
                     value: null,
                 },
             ],
@@ -308,11 +406,11 @@ export default {
                 });
             }
         },
-        save() {
+        async save() {
             this.dialogFeedback = false;
             this.feedbackObject.case = this.caseId;
             this.feedbackObject.is_main = true;
-            this.createFeedback();
+            await this.createFeedback();
         },
         cancel() {
             this.clearForm();
@@ -327,8 +425,8 @@ export default {
             this.$refs.form.reset();
         },
         async createFeedback() {
-            const { data: response } = await CasesApi.reportMissing(this.caseId);
             const { data: feedbackObject } = await FeedbacksApi.create(this.feedbackObject);
+            const { data: response } = await CasesApi.reportMissing(this.caseId, this.caseObject);
             this.clearForm();
             this.$router.push({ name: 'cases' });
         },

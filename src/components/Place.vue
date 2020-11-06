@@ -2,19 +2,21 @@
     <v-dialog v-model="dialogPlace" persistent max-width="700px" @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
             <v-btn dark color="primary" v-on="on" @click="setUp()">
-                Add place
+                {{ $t('place.add_place') }}
             </v-btn>
         </template>
         <v-card>
-            <v-card-title primary-title class="mb-0 mx-3">
-                <div>
-                    <div v-if="isEditMode" class="headline">Update Alert</div>
-                    <div v-else-if="isViewMode" class="headline">Alert: {{ alertObject.id }}</div>
-                    <div v-else class="headline">Provide Alert</div>
-                    <a @click="goToCase()" style="color: blue;">Case #{{ caseId }} - {{ fullName }}</a>
-                </div>
-            </v-card-title>
-            <v-card-text style="margin-top: -20px;">
+            <v-toolbar flat>
+                <v-toolbar-title>
+                    <span v-if="isEditMode">{{ $t('place.update_alert') }}</span>
+                    <span v-else-if="isViewMode">{{ $t('place.alert') }}: {{ alertObject.id }}</span>
+                    <span v-else>{{ $t('place.provide_alert') }}</span>
+                    <span>&nbsp;</span>
+                    <v-icon color="black">forward</v-icon>
+                    <span @click="goToCase()" style="color: grey;"><b> {{ fullName }}</b></span>
+                </v-toolbar-title>
+            </v-toolbar>
+            <v-card-text>
                 <v-form ref="form" v-model="valid" lazy-validation>
                     <v-layout row wrap>
                         <v-flex xs12>
@@ -23,8 +25,8 @@
                                     <v-text-field
                                         ref="addressField"
                                         v-model="place"
-                                        label="Address"
-                                        hint="Type the address and then hit enter"
+                                        :label="$t('place.address')"
+                                        :hint="$t('place.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"
                                         :rules="[rules.address, rules.required]"
@@ -32,13 +34,10 @@
                                         @keyup.enter.native="triggerPlaceChangeEvent(place)"></v-text-field>
                                 </v-flex>
                                 <v-flex xs12 sm1 class="mt-2">
-                                    <v-btn dark color="primary" @click="triggerPlaceChangeEvent(place)">Find address</v-btn>
+                                    <v-btn dark color="primary" @click="triggerPlaceChangeEvent(place)">{{ $t('place.find_address') }}</v-btn>
                                 </v-flex>
-                                <v-flex xs12 sm12 md12 lg12 xl12 style="margin: 0px 10px 0px 10px">
-                                    <gmap-map :center="center" :zoom="18" :options="mapOptions"
-                                              style="width:100%;  height: 330px; margin-bottom: 5px;">
-                                        <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                     :draggable="false" @click="center=m.position"/> -->
+                                <v-flex xs12>
+                                    <gmap-map :center="center" :zoom="18" :options="mapOptions" style="height: 330px;">
                                         <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                                                      :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                     </gmap-map>
@@ -49,17 +48,14 @@
                                     <v-text-field
                                         ref="addressField"
                                         v-model="place"
-                                        label="Address"
                                         :class="{'disable-events': isViewMode || isEditMode }"
-                                        hint="Type the address and then hit enter"
+                                        :label="$t('place.address')"
+                                        :hint="$t('place.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"></v-text-field>
                                 </v-flex>
-                                <v-flex xs12 style="margin: 0px 10px 0px 10px">
-                                    <gmap-map :center="center" :zoom="18" :options="mapOptions"
-                                              style="width:100%;  height: 330px; margin-bottom: 5px;">
-                                        <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                     :draggable="false" @click="center=m.position"/> -->
+                                <v-flex xs12>
+                                    <gmap-map :center="center" :zoom="18" :options="mapOptions" style="height: 330px;">
                                         <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                                                      :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                     </gmap-map>
@@ -70,7 +66,7 @@
                             <v-layout wrap>
                                 <v-flex xs12 sm12 md6>
                                     <v-text-field v-model="alertObject.radius" suffix="km"
-                                                  label="Radius" placeholder="Set radius in km"
+                                                  :label="$t('place.radius')" :placeholder="$t('place.radius_placeholder')"
                                                   style="padding: 5px;"
                                                   prepend-icon="360" @change="validateForm();" @input="loadSearchField(alertObject)"
                                                   :class="{'disable-events': isViewMode || isEditMode }"
@@ -79,7 +75,7 @@
                                 <v-flex xs12 sm12 md6>
                                     <v-text-field v-model.number="alertDuration" type="number" suffix="H"
                                                   max="240" min="1"
-                                                  label="Duration" placeholder="Set alert duration in hours"
+                                                  :label="$t('place.duration')" :placeholder="$t('place.duration_placeholder')"
                                                   style="padding: 5px;"
                                                   :class="{'disable-events': isViewMode || isEditMode }"
                                                   prepend-icon="access_time" @change="validateForm()"
@@ -87,9 +83,9 @@
                                 </v-flex>
                                 <v-flex xs12 class="mx-2">
                                     <v-textarea name="input-7-1" v-model="alertObject.description" box
-                                                label="Alert message"
+                                                :label="$t('place.alert_message')"
                                                 ref="alertObjectDescription"
-                                                placeholder="Describe the situation please..." auto-grow
+                                                :placeholder="$t('place.alert_message_placeholder')" auto-grow
                                                 rows="4"
                                                 :class="{'disable-events': isViewMode || isEditMode }"
                                                 :rules="[rules.required]" @change="validateForm()">
@@ -98,8 +94,8 @@
                                 <v-flex xs12 class="mx-2" style="margin-top: -20px;">
                                     <v-checkbox
                                         v-model="checkbox"
-                                        :rules="[v => !!v || 'You must agree to continue!']"
-                                        label="All information included in the message is approved by the authorities."
+                                        :rules="[v => !!v || $t('place.agree')]"
+                                        :label="$t('place.alert_message')"
                                         required
                                     ></v-checkbox>
                                 </v-flex>
@@ -110,9 +106,9 @@
             </v-card-text>
             <v-card-actions style="margin-top: -50px;" class="mx-2">
                 <v-spacer></v-spacer>
-                <v-btn color="gray darken-1" flat @click="cancel()">Close</v-btn>
+                <v-btn color="gray darken-1" flat @click="cancel()">{{ $t('place.close') }}</v-btn>
                 <v-btn v-if="!isViewMode && !isEditMode" :disabled="!valid" color="blue darken-1" flat @click="save()">
-                    <span>Save</span>
+                    <span>{{ $t('place.save') }}</span>
                 </v-btn>
                 <deactivate-alert v-if="isEditMode" :alert-id="alertObject.id"></deactivate-alert>
             </v-card-actions>
@@ -160,9 +156,9 @@ export default {
             place: null,
             dialogPlace: false,
             rules: {
-                required: value => !!value || 'Field is required',
-                address: value => value && value.length > 5 && value.length < 250 || 'Address must be between 5 and 50 characters',
-                duration: value => value && value > 0 && value < 241 || 'Duration must be between 1 to 240 hours',
+                required: value => !!value || this.$t('place.rules_required'),
+                address: value => value && value.length > 5 && value.length < 250 || this.$t('place.rules_address'),
+                duration: value => value && value > 0 && value < 241 || this.$t('place.rules_duration'),
             },
         };
     },

@@ -1,7 +1,72 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div v-if="isLoaded" style="padding: 10px;">
         <v-layout>
-            <v-flex xs12 sm12 md12 lg12 xl12>
+            <v-flex xs12>
+                <v-toolbar v-if="caseObject.status==='active' || caseObject.status==='inactive'">
+                    <v-chip v-if="caseObject.organization!==$store.state.organizationId" label dark color="indigo lighten-2">
+                        <v-icon left>folder_shared</v-icon>
+                        <b>{{caseObject.organization_name}}</b>
+                    </v-chip>
+                    <v-chip v-if="caseObject.amber_alert" label dark color="warning">
+                        <v-icon left>warning</v-icon>
+                        <b>{{ $t('case_info.amber_alert') }}</b>
+                    </v-chip>
+                    <v-chip v-if="caseObject.status === 'active'" label dark color="blue-grey darken-3">
+                        <v-icon left>person_search</v-icon>
+                        <b>Missing</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'present'" label dark color="green">
+                        <v-icon left>person</v-icon>
+                        <b>Present</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'not_present'" label dark color="#2FD1D4">
+                        <v-icon left>person</v-icon>
+                        <b>Not Present</b>
+                    </v-chip>
+                    <v-chip v-else-if="caseObject.presence_status === 'transit'" label dark color="#800080">
+                        <v-icon left>person</v-icon>
+                        <b>Not Present</b>
+                    </v-chip>
+                    <v-spacer></v-spacer>
+                    <div v-if="caseObject.presence_status === 'transit' && this.$store.state.role==='facility_manager'" class="text-xs-right">
+                        <v-btn :dark="caseObject.status !== 'active'" color="#2FD1D4" @click="addChilceToFacility(caseObject)">{{ $t('case_info.accept_transfer') }}</v-btn>
+                    </div>
+                    <div v-if="caseObject.organization===$store.state.organizationId" class="text-xs-right">
+                        <v-btn flat v-if="caseObject.status==='active' && this.$caseManagerAndAbove.includes($store.state.role) ||
+                            caseObject.status==='inactive' && this.$store.state.role==='facility_manager'" dark color="#F4B350" @click="loadEditCase()">
+                            {{ $t('case_info.edit_case') }}
+                            <v-icon right dark>edit</v-icon>
+                        </v-btn>
+                        <v-btn flat v-if="caseObject.status==='active' && this.$caseManagerAndAbove.includes($store.state.role)" dark color="teal" @click="openCloseCaseDialog()">
+                            {{ $t('case_info.close_case') }}
+                            <v-icon right dark>search_off</v-icon>
+                        </v-btn>
+                        <v-btn v-if="caseObject.status==='inactive' && this.$store.state.role==='facility_manager'" :dark="caseObject.status !== 'active'" color="green" @click="setPresence('present')">{{ $t('case_info.present') }}</v-btn>
+                        <v-btn v-if="caseObject.status==='inactive' && this.$store.state.role==='facility_manager'" :dark="caseObject.status !== 'active'" color="#2FD1D4" @click="setPresence('not_present')">{{ $t('case_info.not_present') }}</v-btn>
+                        <v-btn v-if="caseObject.status==='inactive' && this.$store.state.role==='facility_manager'" :dark="caseObject.status !== 'active'" color="#800080" @click="setPresence('transit')">{{ $t('case_info.transit') }}</v-btn>
+                        <missing-report
+                            v-if="caseObject.status==='inactive' && this.$store.state.role==='facility_manager' && caseObject.presence_status !== 'not_present'"
+                            :case-id="caseObject.id"
+                            :full-name="caseObject.full_name"
+                        ></missing-report>
+                    </div>
+                </v-toolbar>
+                <v-toolbar v-if="caseObject.status==='closed' && this.$store.state.role!=='facility_manager' && caseObject.organization===$store.state.organizationId">
+                    <v-chip label dark color="teal darken-5">
+                        <v-icon left>search_off</v-icon>
+                        <b>{{ caseObject.status | title }}</b>
+                    </v-chip>
+                    <v-spacer></v-spacer>
+                    <v-btn flat dark color="#F4B350" @click="loadEditCase()">
+                        {{ $t('case_info.edit_case') }}
+                        <v-icon right dark>edit</v-icon>
+                    </v-btn>
+                    <v-btn flat dark color="brown darken-1" @click="archiveCase()">
+                        {{ $t('case_info.archive_case') }}
+                        <v-icon right dark>archive</v-icon>
+                    </v-btn>
+                </v-toolbar>
+                <br/>
                 <v-card color="grey lighten-5" class="mb-5" style="padding: 15px;">
                     <v-card-title>
                         <div style="margin-bottom: 0px;">
@@ -52,7 +117,7 @@
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
+                            <v-flex v-if="caseObject.status!=='inactive'" xs12 sm12 md3 lg3 xl3>
                                 <v-menu v-model="contactedDateMenu" :close-on-content-click="false" :nudge-right="40"
                                         lazy
                                         transition="scale-transition" offset-y full-width min-width="290px">
@@ -84,7 +149,7 @@
                                               v-model="caseObject.phone" :label="$t('case.contact_phone')"
                                               class="textField"></v-text-field>
                             </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
+                            <v-flex v-if="caseObject.status!=='inactive'" xs12 sm12 md3 lg3 xl3>
                                 <v-select :class="{'disable-events': true }" :items="disappearanceTypeOptions"
                                           v-model="caseObject.disappearance_type"
                                           :label="$t('case.dis_type')" item-text="text" item-value="value"
@@ -99,16 +164,23 @@
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="riskOptions"
+                                <v-select :class="{'disable-events': true }" :items="riskOptions"
                                           v-model="caseObject.is_high_risk"
                                           :label="$t('case.is_high_risk')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :items="legalStatusOptions"
+                                <v-select :class="{'disable-events': true }" :items="legalStatusOptions"
                                           v-model="caseObject.legal_status"
                                           :label="$t('case.legal_status')" item-text="text" item-value="value"
+                                          style="padding: 5px 15px;">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-select :class="{'disable-events': true }" :items="traffickingHistoryOptions"
+                                          v-model="caseObject.has_trafficking_history"
+                                          :label="$t('case.has_trafficking_history')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
@@ -141,7 +213,7 @@
                                     <template v-slot:activator="{ on }">
                                         <v-text-field :class="{'disable-events': true }"
                                                       v-model="caseObject.arrival_at_facility_date"
-                                                      :label="$t('case.star_arrival_at_facility')"
+                                                      :label="$t('case.arrival_at_facility')"
                                                       prepend-icon="event" readonly v-on="on"
                                                       style="padding: 5px 15px;"
                                                       clearable :placeholder="$t('case.arrival_at_facility_placeholder')">
@@ -176,25 +248,43 @@
                                 </v-text-field>
                             </v-flex>
                             <v-flex xs12 sm12 md3 lg3 xl3>
-                                <v-select :class="{'disable-events': true }" :items="educationOptions"
-                                          v-model="caseObject.education_level"
-                                          :label="$t('case.education_level')"
-                                          :placeholder="$t('case.education_placeholder')"
-                                          item-text="text" item-value="value"
-                                          style="padding: 5px 15px;">
-                                </v-select>
-                            </v-flex>
-                            <v-flex xs12 sm12 md3 lg3 xl3>
                                 <v-select :class="{'disable-events': true }" :items="schoolGradesOptions"
                                           v-model="caseObject.school_grades"
                                           :label="$t('case.school_grades')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
+                            <v-flex v-if="$store.state.role==='facility_manager'" xs12>
+                                <v-layout row wrap>
+                                    <v-flex xs12 sm12 md12 lg12 xl12 class="text-xs-center text-sm-center text-md-center text-lg-center mbot">
+                                        <v-text-field
+                                            v-model="getChildImageName"
+                                            :label="$t('case.child_photo')"
+                                            :value="caseObject.profile_photo"
+                                            :placeholder="$t('case.child_photo_placeholder')"
+                                            class="header-text-field-input"
+                                            color="secondary"
+                                            prepend-icon="insert_photo"
+                                            @click="pickFile"
+                                        />
+                                        <input
+                                            ref="image"
+                                            type="file"
+                                            style="display: none"
+                                            accept="image/*"
+                                            @change="setImage"
+                                        />
+                                    </v-flex>
+                                    <v-flex xs12 sm12 md12 lg12 xl12 style="padding: 5px;" class="text-xs-center text-sm-center text-md-center text-lg-center">
+                                        <img ref="imageId" :src="getChildImage"
+                                             style="max-width: 340px; max-height: 250px;"></img>
+                                    </v-flex>
+                                </v-layout>
+                            </v-flex>
                         </v-layout>
                     </v-card-text>
                 </v-card>
-                <v-card color="grey lighten-5" class="mb-5" style="padding: 15px;">
+                <v-card v-if="this.$store.state.role!=='facility_manager'" color="grey lighten-5" class="mb-5" style="padding: 15px;">
                     <v-card-title>
                         <div style="margin-bottom: 0px;">
                             <span style="font-size: large; font-weight: bold;">{{ $t('case.investigation_details') }}</span><br/>
@@ -231,7 +321,7 @@
                                 </v-flex>
                                 <v-flex xs12 sm12 md12 lg12 xl12 style="margin-top: 10px;">
                                     <v-layout wrap>
-                                        <v-flex xs12 sm12 md6 lg6 xl6>
+                                        <!-- <v-flex xs12 sm12 md6 lg6 xl6>
                                             <v-text-field :class="{'disable-events': true }"
                                                           v-model="feedbackObject.latitude"
                                                           class="header-text-field-input"
@@ -248,7 +338,7 @@
                                                           :label="$t('case.logitude')" placeholder="-" disabled
                                                           style="padding: 5px 15px;"
                                                           prepend-icon="my_location"></v-text-field>
-                                        </v-flex>
+                                        </v-flex> -->
                                         <v-flex xs12 sm12 md6 lg6 xl6>
                                             <date-time-picker v-model="feedbackObject.date" :label="$t('case.incident_datetime')" prepend-icon="access_time" class="mx-2"
                                                               :rules="[rules.required]"></date-time-picker>
@@ -271,37 +361,37 @@
                             <v-layout align-start justify-space-around row fill-height wrap>
                                 <v-flex xs12 sm12 md12 lg12 xl12>
                                     <v-layout row wrap>
-                                        <v-flex xs12 sm12 md3 lg3 xl3>
+                                        <v-flex xs12 sm12 md3>
                                             <v-select :class="{'disable-events': true }" :items="mobileOptions"
                                                       v-model="caseObject.has_mobile_phone"
                                                       :label="$t('case.has_mobile')" style="padding: 5px 15px;">
                                             </v-select>
                                         </v-flex>
-                                        <v-flex xs12 sm12 md3 lg3 xl3>
+                                        <v-flex xs12 sm12 md3>
                                             <v-select :class="{'disable-events': true }" :items="moneyOptions"
                                                       v-model="caseObject.has_money_or_credit"
                                                       :label="$t('case.has_money')" style="padding: 5px 15px;">
                                             </v-select>
                                         </v-flex>
-                                        <v-flex xs12 sm12 md3 lg3 xl3>
+                                        <v-flex xs12 sm12 md3>
                                             <v-select :class="{'disable-events': true }" :items="booleanOptions"
                                                       v-model="caseObject.has_area_knowledge"
                                                       :label="$t('case.has_area_knowledge')" style="padding: 5px 15px;">
                                             </v-select>
                                         </v-flex>
-                                        <v-flex xs12 sm12 md3 lg3 xl3>
+                                        <v-flex xs12 sm12 md3>
                                             <v-select :class="{'disable-events': true }" :items="booleanOptions"
                                                       v-model="caseObject.clothing_with_scent"
                                                       :label="$t('case.scent')" style="padding: 5px 15px;">
                                             </v-select>
                                         </v-flex>
-                                        <v-flex xs12 sm12 md4>
+                                        <v-flex xs12 sm12 md3>
                                             <v-select :items="booleanOptions"
                                                       v-model="caseObject.is_first_time_missing"
                                                       :label="$t('case.first_time_miss')" style="padding: 5px 15px;">
                                             </v-select>
                                         </v-flex>
-                                        <v-flex xs12 sm12 md6 lg6 xl6>
+                                        <v-flex xs12>
                                             <v-textarea disabled name="input-7-1"
                                                         v-model="caseObject.transit_country" box
                                                         :label="$t('case.transit_country')"
@@ -327,7 +417,7 @@
                         </v-form>
                     </v-card-text>
                 </v-card>
-                <v-card color="grey lighten-5" class="mb-5" style="padding: 15px;">
+                <v-card v-if="this.$store.state.role!=='facility_manager'" color="grey lighten-5" class="mb-5" style="padding: 15px;">
                     <v-card-title>
                         <div style="margin-bottom: 0px;"><span
                             style="font-size: large; font-weight: bold;">{{ $t('case.alert_details') }}</span>
@@ -389,21 +479,103 @@
                     </v-card-title>
                     <v-card-text>
                         <v-layout row wrap>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
                                 <v-text-field :class="{'disable-events': true }"
                                               v-model="caseObject.eye_color"
                                               :label="$t('case.eye_color')"
                                               style="padding: 5px 15px;">
                                 </v-text-field>
                             </v-flex>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
                                 <v-text-field :class="{'disable-events': true }"
                                               v-model="caseObject.hair_color"
                                               :label="$t('case.hair_color')"
                                               style="padding: 5px 15px;">
                                 </v-text-field>
                             </v-flex>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model="caseObject.haircut"
+                                              :label="$t('case.haircut')"
+                                              style="padding: 5px 15px;">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
+                                <v-select :class="{'disable-events': true }" :items="skinColorOptions" v-model="caseObject.skin_color"
+                                          :label="$t('case.skin_color')" item-text="text" item-value="value"
+                                          style="padding: 5px 15px;">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model.number="caseObject.height"
+                                              :label="$t('case.height')"
+                                              :placeholder="$t('case.height_placeholder')"
+                                              suffix="cm"
+                                              style="padding: 5px 15px;" type="number" min="10" max="300">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model.number="caseObject.weight" :label="$t('case.weight')"
+                                              :placeholder="$t('case.weight_placeholder')"
+                                              suffix="kg"
+                                              style="padding: 5px 15px;" type="number" min="5" max="200">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-select :class="{'disable-events': true }" :items="statureOptions" v-model="caseObject.stature"
+                                          :label="$t('case.stature')" item-text="text" item-value="value"
+                                          style="padding: 5px 15px;">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3 lg3 xl3>
+                                <v-select :class="{'disable-events': true }" :items="bodyOptions" v-model="caseObject.body_type"
+                                          :label="$t('case.body_type')" item-text="text" item-value="value"
+                                          style="padding: 5px 15px;">
+                                </v-select>
+                            </v-flex>
+                            <v-flex xs12 sm12 md12 lg12 xl12>
+                                <v-textarea disabled name="input-7-1" v-model="caseObject.characteristics" box
+                                            :label="$t('case.chars')"
+                                            :placeholder="$t('case.chars_placeholder')" auto-grow rows="4"
+                                            style="padding: 10px 15px;"
+                                            counter maxlength="5000">
+                                </v-textarea>
+                            </v-flex>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+                <v-card v-if="this.$store.state.role==='facility_manager'" color="grey lighten-5" class="mb-5" style="padding: 15px;">
+                    <v-card-title>
+                        <div style="margin-bottom: 0px;"><span
+                            style="font-size: large; font-weight: bold;">{{ $t('case.physical_data') }}</span>
+                        </div>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-layout row wrap>
+                            <v-flex xs12 sm12 md3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model="caseObject.eye_color"
+                                              :label="$t('case.eye_color')"
+                                              style="padding: 5px 15px;">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model="caseObject.hair_color"
+                                              :label="$t('case.hair_color')"
+                                              style="padding: 5px 15px;">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
+                                <v-text-field :class="{'disable-events': true }"
+                                              v-model="caseObject.haircut"
+                                              :label="$t('case.haircut')"
+                                              style="padding: 5px 15px;">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md3>
                                 <v-select :class="{'disable-events': true }" :items="skinColorOptions" v-model="caseObject.skin_color"
                                           :label="$t('case.skin_color')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
@@ -528,21 +700,21 @@
                             </v-flex>
                         </v-layout>
                         <v-layout row wrap>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
                                 <v-select :class="{'disable-events': true }" :items="addictionOptions"
                                           v-model="caseObject.addiction"
                                           :label="$t('case.addiction')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
                                 <v-select :class="{'disable-events': true }" :items="heathIssuesOptions"
                                           v-model="caseObject.health_issues"
                                           :label="$t('case.health_issues')" item-text="text" item-value="value"
                                           style="padding: 5px 15px;">
                                 </v-select>
                             </v-flex>
-                            <v-flex xs12 sm12 md4 lg4 xl4>
+                            <v-flex xs12 sm12 md3>
                                 <v-select :class="{'disable-events': true }" :items="medicalTreatmentOptions"
                                           v-model="caseObject.medical_treatment_required"
                                           :label="$t('case.treatment_required')" item-text="text" item-value="value"
@@ -597,17 +769,45 @@
                 </v-card>
             </v-flex>
         </v-layout>
+        <v-dialog v-model="verifyCloseCaseDialog" width="500">
+            <v-card>
+                <v-card-title primary-title>
+                    <div>
+                        <h3 class="headline mb-0">{{ $t('case.close_case_validation') }}</h3>
+                        <br/>
+                        <div>{{ $t('case.close_case_dialog_message') }}</div>
+                    </div>
+                </v-card-title>
+                <v-card-text>
+                    <v-textarea name="input-7-1" v-model="closeCaseMessage" box
+                                :label="$t('case.close_case_notification_message')"
+                                ref="close-case-notification" auto-grow
+                                rows="4">
+                    </v-textarea>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="" flat @click="verifyCloseCaseDialog = false; closeCaseMessage=null;">{{ $t('case_facts.cancel') }}</v-btn>
+                    <v-btn color="red" flat @click="closeCase()">{{ $t('case_info.close_case') }}</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import { bus } from '../../../main';
-import { UsersApi, CasesApi, FeedbacksApi } from '@/api';
+import { UsersApi, CasesApi, FeedbacksApi, FacilitiesApi } from '@/api';
 import { DateTimePicker } from '@/components';
+import { SET_SNACKBAR_STATUS } from '@/store/mutation-types';
+
+import MissingReport from '@/components/MissingReport.vue';
 
 export default {
     components: {
+        MissingReport,
         DateTimePicker,
     },
     props: {
@@ -625,6 +825,8 @@ export default {
             caseObject: {},
             isLoaded: false,
             userObject: {},
+            verifyCloseCaseDialog: false,
+            closeCaseMessage: null,
             socialMedia: [
                 {
                     medium: 'Facebook',
@@ -829,6 +1031,24 @@ export default {
                     value: null,
                 },
             ],
+            traffickingHistoryOptions: [
+                {
+                    text: this.$t('case.concern_choice.possibly'),
+                    value: 'possibly',
+                },
+                {
+                    text: this.$t('case.yes_no_choice.yes'),
+                    value: 'yes',
+                },
+                {
+                    text: this.$t('case.yes_no_choice.no'),
+                    value: 'no',
+                },
+                {
+                    text: this.$t('case.yes_no_choice.unknown'),
+                    value: null,
+                },
+            ],
             educationOptions: [
                 {
                     text: this.$t('case.education_choice.first_grade'),
@@ -896,6 +1116,10 @@ export default {
                 },
             ],
             bodyOptions: [
+                {
+                    text: this.$t('case.body_choice.petit'),
+                    value: 'petit',
+                },
                 {
                     text: this.$t('case.body_choice.slim'),
                     value: 'slim',
@@ -1360,7 +1584,7 @@ export default {
                     social_media_data: {},
                 };
             }
-            this.caseObject.organization = this.userObject.organization;
+            // this.caseObject.organization = this.userObject.organization;
         } else {
             const { data: socialMedia } = await CasesApi.getSocialMedia({ case_id: this.$route.params.id });
             this.socialMedia = socialMedia;
@@ -1515,6 +1739,47 @@ export default {
                 child_status: null,
                 transportation: null,
             };
+        },
+        loadEditCase() {
+            this.$router.push({ name: 'case_edit', params: { caseObjectProp: this.caseObject } });
+        },
+        openCloseCaseDialog() {
+            this.verifyCloseCaseDialog = true;
+        },
+        async closeCase() {
+            await CasesApi.close(this.caseObject.id, { message: this.closeCaseMessage });
+            this.$router.push({ name: 'cases' });
+        },
+        async archiveCase() {
+            const { data: feedbacks } = await FeedbacksApi.all({ caseId: this.caseObject.id });
+            this.feedbacks = feedbacks;
+            let checkFeedbacks = true;
+            feedbacks.forEach((feedback) => {
+                if (feedback.is_valid === null || feedback.is_valid === undefined) {
+                    checkFeedbacks = false;
+                }
+            });
+            if (this.caseObject.disappearance_type == null || this.caseObject.disappearance_type === undefined) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('case_info.set_disappearance_type'), color: 'error' });
+            } else if (this.caseObject.is_refugee == null || this.caseObject.is_refugee === undefined) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('case_info.set_refugee'), color: 'error' });
+            } else if (!checkFeedbacks) {
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('case_info.set_facts_validation'), color: 'error' });
+            } else {
+                await CasesApi.archive(this.id);
+                this.$router.push({ name: 'cases' });
+                this.$store.commit(SET_SNACKBAR_STATUS, { message: this.$t('case_info.success_archiving'), color: 'primary' });
+            }
+        },
+        async setPresence(state) {
+            const { data: response } = await CasesApi.setState(this.caseObject.id, { presence_status: state });
+            const { data: caseObject } = await CasesApi.get(this.caseObject.id);
+            this.caseObject = caseObject;
+        },
+        async addChilceToFacility(caseObjecta) {
+            const { data: addChildResponse } = await FacilitiesApi.addChild(caseObjecta.child);
+            const { data: caseObject } = await CasesApi.get(this.caseObject.id);
+            this.caseObject = caseObject;
         },
     },
 };

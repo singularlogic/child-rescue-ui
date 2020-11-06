@@ -5,11 +5,12 @@
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
+        "build-test": "vue-cli-service build --mode staging",
         "lint": "vue-cli-service lint"
     },
     "dependencies": {
         "@babel/polyfill": "^7.0.0",
-        "apexcharts": "^3.11.2",
+        "apexcharts": "^3.16.1",
         "axios": "^0.18.0",
         "exif-js": "^2.3.0",
         "google-maps": "^3.3.0",
@@ -17,7 +18,7 @@
         "html2canvas": "^1.0.0-rc.5",
         "jspdf": "^1.5.3",
         "moment": "^2.23.0",
-        "node-sass": "^4.10.0",
+        "numeral": "^2.0.6",
         "ramda": "^0.26.1",
         "rxjs": "^6.5.2",
         "rxjs-compat": "^6.5.2",
@@ -49,7 +50,7 @@
         "babel-eslint": "^10.0.1",
         "eslint": "^5.16.0",
         "eslint-plugin-vue": "^5.0.0",
-        "node-sass": "^4.9.0",
+        "node-sass": "^4.14.1",
         "sass-loader": "^7.1.0",
         "stylus": "^0.54.5",
         "stylus-loader": "^3.0.1",

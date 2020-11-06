@@ -1,30 +1,33 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <v-dialog v-model="dialogAlert" persistent max-width="900px" @keydown.esc="cancel()">
         <template v-slot:activator="{ on }">
-            <v-btn dark color="primary" v-on="on" @click="setUp()">
-                CREATE ALERT
+            <v-btn flat dark color="primary" v-on="on" @click="setUp()">
+                {{ $t('alert.create_alert') }}
+                <v-icon right>add_alert</v-icon>
             </v-btn>
         </template>
         <v-card>
-            <v-card-title primary-title class="mb-0 mx-3">
-                <div>
-                    <div v-if="isEditMode" class="headline">Update Alert</div>
-                    <div v-else-if="isViewMode" class="headline">Alert: {{ alertObject.id }}</div>
-                    <div v-else class="headline">Provide Alert</div>
-                    <a @click="goToCase()" style="color: blue;">Case #{{ caseId }} - {{ fullName }}</a>
-                </div>
-            </v-card-title>
-            <v-card-text style="margin-top: -20px;">
-                <v-form ref="form" v-model="valid" lazy-validation>
+            <v-toolbar flat>
+                <v-toolbar-title>
+                    <span v-if="isEditMode">{{ $t('alert.update_alert') }}</span>
+                    <span v-else-if="isViewMode">{{ $t('alert.alert') }} [{{ alertObject.id }}]</span>
+                    <span v-else>{{ $t('alert.provide_alert') }}</span>
+                    <span>&nbsp;</span>
+                    <v-icon color="black">forward</v-icon>
+                    <span @click="goToCase()" style="color: grey;"><b> {{ fullName || ' - ' | title }} &nbsp;&nbsp;</b></span>
+                </v-toolbar-title>
+            </v-toolbar>
+            <v-card-text>
+                <v-form ref="form" v-model="isFormValid" lazy-validation>
                     <v-layout row wrap>
                         <v-flex xs12>
                             <v-layout v-if="!isViewMode && !isEditMode" row wrap>
-                                <v-flex xs12 sm10 class="mb-2 ml-2">
+                                <v-flex xs12 sm10 class="mb-2 ml-1">
                                     <v-text-field
                                         ref="addressField"
                                         v-model="place"
-                                        label="Address"
-                                        hint="Type the address and then hit enter"
+                                        :label="$t('alert.address')"
+                                        :hint="$t('alert.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"
                                         :rules="[rules.address, rules.required]"
@@ -32,45 +35,41 @@
                                         @keyup.enter.native="triggerPlaceChangeEvent(place)"></v-text-field>
                                 </v-flex>
                                 <v-flex xs12 sm1 class="mt-2">
-                                    <v-btn dark color="primary" @click="triggerPlaceChangeEvent(place)">Find address</v-btn>
+                                    <v-btn color="primary" style="margin-top: 4px;" @click="triggerPlaceChangeEvent(place)">{{ $t('alert.find_address') }}</v-btn>
                                 </v-flex>
-                                <v-flex xs12 sm12 md12 lg12 xl12 style="margin: 0px 10px 0px 10px">
+                                <v-flex xs12 class="mx-2 my-2">
                                     <gmap-map :center="center" :zoom="18" :options="mapOptions"
-                                              style="width:100%;  height: 330px; margin-bottom: 5px;">
-                                        <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                     :draggable="false" @click="center=m.position"/> -->
+                                              style="height: 330px;">
                                         <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                                                      :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                     </gmap-map>
                                 </v-flex>
                             </v-layout>
                             <v-layout v-else row wrap>
-                                <v-flex xs12 class="mb-2 mx-2">
+                                <v-flex xs12>
                                     <v-text-field
                                         ref="addressField"
                                         v-model="place"
-                                        label="Address"
+                                        :label="$t('alert.address')"
                                         :class="{'disable-events': isViewMode || isEditMode }"
-                                        hint="Type the address and then hit enter"
+                                        :hint="$t('alert.address_hint')"
                                         persistent-hint
                                         prepend-icon="pin_drop"></v-text-field>
                                 </v-flex>
-                                <v-flex xs12 style="margin: 0px 10px 0px 10px">
+                                <v-flex xs12 class="mx-2 my-2">
                                     <gmap-map :center="center" :zoom="18" :options="mapOptions"
-                                              style="width:100%;  height: 330px; margin-bottom: 5px;">
-                                        <!-- <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
-                                                     :draggable="false" @click="center=m.position"/> -->
+                                              style="height: 330px;">
                                         <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                                                      :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
                                     </gmap-map>
                                 </v-flex>
                             </v-layout>
                         </v-flex>
-                        <v-flex xs12 style="margin-top: 10px;">
+                        <v-flex xs12>
                             <v-layout wrap>
                                 <v-flex xs12 sm12 md6>
                                     <v-text-field v-model="alertObject.radius" suffix="km"
-                                                  label="Radius" placeholder="Set radius in km"
+                                                  :label="$t('alert.radius')" :placeholder="$t('alert.radius_placeholder')"
                                                   style="padding: 5px;"
                                                   prepend-icon="360" @change="validateForm();" @input="loadSearchField(alertObject)"
                                                   :class="{'disable-events': isViewMode || isEditMode }"
@@ -78,28 +77,28 @@
                                 </v-flex>
                                 <v-flex xs12 sm12 md6>
                                     <v-text-field v-model.number="alertDuration" type="number" suffix="H"
-                                                  max="240" min="1"
-                                                  label="Duration" placeholder="Set alert duration in hours"
+                                                  min="1"
+                                                  :label="$t('alert.duration')" :placeholder="$t('alert.duration_placeholder')"
                                                   style="padding: 5px;"
                                                   :class="{'disable-events': isViewMode || isEditMode }"
                                                   prepend-icon="access_time" @change="validateForm()"
                                                   :rules="[rules.duration, rules.required]"></v-text-field>
                                 </v-flex>
-                                <v-flex xs12 class="mx-2">
+                                <v-flex xs12>
                                     <v-textarea name="input-7-1" v-model="alertObject.description" box
-                                                label="Alert message"
-                                                ref="alertObjectDescription"
-                                                placeholder="Describe the situation please..." auto-grow
+                                                :label="$t('alert.alert_message')"
+                                                ref="alert-object-description"
+                                                :placeholder="$t('alert.alert_message_placeholder')" auto-grow
                                                 rows="4"
                                                 :class="{'disable-events': isViewMode || isEditMode }"
                                                 :rules="[rules.required]" @change="validateForm()">
                                     </v-textarea>
                                 </v-flex>
-                                <v-flex xs12 class="mx-2" style="margin-top: -20px;">
+                                <v-flex v-if="!isViewMode && !isEditMode" xs12 style="margin-top: 0px;">
                                     <v-checkbox
                                         v-model="checkbox"
-                                        :rules="[v => !!v || 'You must agree to continue!']"
-                                        label="All information included in the message is approved by the authorities."
+                                        :rules="[v => !!v || this.$t('alert.agree')]"
+                                        :label="$t('alert.disclaimer')"
                                         required
                                     ></v-checkbox>
                                 </v-flex>
@@ -108,28 +107,102 @@
                     </v-layout>
                 </v-form>
             </v-card-text>
-            <v-card-actions style="margin-top: -50px;" class="mx-2">
+            <v-divider></v-divider>
+            <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="gray darken-1" flat @click="cancel()">Close</v-btn>
-                <v-btn v-if="!isViewMode && !isEditMode" :disabled="!valid" color="blue darken-1" flat @click="save()">
-                    <span>Save</span>
+                <v-btn flat @click="cancel()">{{ $t('alert.close') }}</v-btn>
+                <v-btn v-if="!isViewMode && !isEditMode" :disabled="!isFormValid" color="primary" flat @click="validate();">
+                    <span>{{ $t('alert.preview') }}</span>
                 </v-btn>
                 <deactivate-alert v-if="isEditMode" :alert-id="alertObject.id"></deactivate-alert>
             </v-card-actions>
         </v-card>
+        <v-dialog v-model="previewAlert" max-width="850px">
+            <v-card>
+                <v-toolbar flat>
+                    <v-toolbar-title>
+                        <span>{{ caseObject.custom_name }}</span>
+                        <v-spacer></v-spacer>
+                        <div style="font-size: 14px;">Missing from: {{ caseObject.disappearance_date | formatDateTime }}</div>
+                    </v-toolbar-title>
+                </v-toolbar>
+                <v-card-text>
+                    <v-layout row wrap>
+                        <v-flex xs5>
+                            <v-img :src="getImagePath(caseObject.profile_photo)" height="343px"></v-img>
+                        </v-flex>
+                        <v-flex xs7>
+                            <v-list dense subheader three-line class="ml-3">
+                                <v-list-tile>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.eye_color') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.eye_color || '-' }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.hair_color') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.hair_color || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.haircut') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.haircut || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.height') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.height || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.weight') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.weight || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.stature') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.stature || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ $t('case.body_type') }}</v-list-tile-title>
+                                        <v-list-tile-sub-title>{{ caseObject.body_type || '-'  }}</v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                            </v-list>
+                            <br/>
+                            <v-textarea name="input-7-1" v-model="alertObject.description" box
+                                :label="$t('alert.alert_message')" class="ml-3"
+                                :placeholder="$t('alert.alert_message_placeholder')" readonly
+                                rows="7">
+                            </v-textarea>
+                        </v-flex>
+                    </v-layout>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn flat @click="previewAlert=false;">{{ $t('alert.close') }}</v-btn>
+                    <v-btn v-if="!isViewMode && !isEditMode" :disabled="!isFormValid" color="blue lighten-2" flat @click="save(true)">
+                        <span>{{ $t('alert.send_to_volunteers') }}</span>
+                    </v-btn>
+                    <v-btn v-if="!isViewMode && !isEditMode" :disabled="!isFormValid" color="blue darken-2" flat @click="save()">
+                        <span>{{ $t('alert.send') }}</span>
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-dialog>
 </template>
 
 <script>
 import moment from 'moment';
 import { bus } from '../main';
-import { AlertsApi } from '@/api';
+import { CasesApi, AlertsApi } from '@/api';
 import DeactivateAlert from './DeactivateAlert.vue';
+import { dates, filters, fonts } from '@/utils/mixins';
 
 export default {
     components: {
         'deactivate-alert': DeactivateAlert,
     },
+    mixins: [dates, filters, fonts],
     props: {
         caseId: { type: [String, Number], default: null },
         caseAlertMessage: { type: String, default: null },
@@ -137,11 +210,12 @@ export default {
     },
     data() {
         return {
+            caseObject: {},
             center: {
                 lat: 45.508,
                 lng: -73.587,
             },
-            valid: true,
+            previewAlert: false,
             checkbox: false,
             markers: [],
             places: [],
@@ -160,13 +234,19 @@ export default {
             place: null,
             dialogAlert: false,
             rules: {
-                required: value => !!value || 'Field is required',
-                address: value => value && value.length > 5 && value.length < 250 || 'Address must be between 5 and 50 characters',
-                duration: value => value && value > 0 && value < 241 || 'Duration must be between 1 to 240 hours',
+                required: value => !!value || this.$t('alert.rules_required'),
+                address: value => value && value.length > 5 && value.length < 250 || this.$t('alert.rules_address'),
+                duration: value => value && value > 0 || this.$t('alert.rules_duration'),
             },
         };
     },
     created() {
+        // this.$nextTick(() => {
+        //     this.$nextTick(() => {
+        //         // this.$refs.nameField.focus();
+        //         this.isFormValid = false;
+        //     });
+        // });
         bus.$off('close-alert-dialog-event');
         bus.$on('close-alert-dialog-event', () => {
             this.cancel();
@@ -179,7 +259,7 @@ export default {
                 this.fullName = alertObject.fullname;
             }
             this.isViewMode = true;
-            this.isFormValid = true;
+            this.isFormValid = false;
             this.alertObject = alertObject;
             this.place = this.alertObject.address;
             this.alertDuration = moment(this.alertObject.end)
@@ -211,8 +291,46 @@ export default {
             this.loadSearchField(this.alertObject);
             this.dialogAlert = true;
         });
+        bus.$off('copy-alert-dialog-event');
+        bus.$on('copy-alert-dialog-event', (alertObject) => {
+            this.isEditMode = false;
+            this.isFormValid = true;
+            this.alertObject = alertObject;
+            this.place = this.alertObject.address;
+            this.triggerPlaceChangeEvent(this.place);
+            this.alertDuration = moment(this.alertObject.end)
+                .diff(moment(this.alertObject.start));
+            const hours = moment.duration(this.alertDuration)
+                .hours();
+            const days = moment.duration(this.alertDuration)
+                .days();
+            this.alertDuration = 24 * days + hours;
+
+            this.loadSearchField(this.alertObject);
+            this.alertObject.id = null;
+            this.dialogAlert = true;
+        });
     },
     methods: {
+        validate() {
+            if (this.$refs.form.validate()) {
+                this.openPreview();
+            }
+        },
+        getImagePath(path) {
+            if (path === null) {
+                return require('../assets/images/default_photo.png');
+            }
+            return path;
+        },
+        async openPreview() {
+            await this.getCase();
+            this.previewAlert = true;
+        },
+        async getCase() {
+            const { data: caseObject } = await CasesApi.get(this.caseId);
+            this.caseObject = caseObject;
+        },
         goToCase() {
             if (this.$store.state.role === 'facility_manager') {
                 this.$router.push({
@@ -260,7 +378,7 @@ export default {
         },
         validateForm() {
             this.isFormValid = !!(this.alertObject.address && this.alertObject.latitude && this.alertObject.longitude
-                && this.alertObject.radius && this.alertDuration && this.alertObject.description);
+                && this.alertObject.radius && this.alertDuration && this.alertObject.description && this.checkbox );
         },
         triggerPlaceChangeEvent(address) {
             if (address && address != null && address.length > 5) {
@@ -276,8 +394,9 @@ export default {
                 });
             }
         },
-        save() {
+        save(volunteersOnly=false) {
             this.dialogAlert = false;
+            this.alertObject.volunteersOnly = volunteersOnly;
             this.alertObject.case = this.caseId;
             if (this.alertObject.id && this.alertObject.id !== null) {
                 this.updateAlert();

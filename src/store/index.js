@@ -28,8 +28,14 @@ const store = new Vuex.Store({
         token: null,
         signedIn: false,
         refreshFeedbacks: false,
+        refreshVolunteers: false,
         refreshControl: false,
         refreshFeed: false,
+        showAlerts: false,
+        showFacts: false,
+        showPOI: false,
+        showAnalytics: false,
+        showVolunteers: false,
         snackbarMessage: "",
         snackbarColor: "",
         loading: false,
@@ -72,13 +78,37 @@ const store = new Vuex.Store({
         },
         setRefreshFeedbacks: (state, isActive) => {
             state.refreshFeedbacks = isActive;
+        },
+        setRefreshVolunteers: (state, isActive) => {
+            state.refreshVolunteers = isActive;
+        },
+        setShowAlerts: (state, isActive) => {
+            state.showAlerts = isActive;
+        },
+        setShowFacts: (state, isActive) => {
+            state.showFacts = isActive;
+        },
+        setShowPOI: (state, isActive) => {
+            state.showPOI = isActive;
+        },
+        setShowAnalytics: (state, isActive) => {
+            state.showAnalytics = isActive;
+        },
+        setShowVolunteers: (state, isActive) => {
+            state.showVolunteers = isActive;
         }
     },
     getters: {
         isLoading: state => state.loading === true,
         refreshControl: state => state.refreshControl === true,
         refreshFeed: state => state.refreshFeed === true,
-        refreshFeedbacks: state => state.refreshFeedbacks === true
+        refreshFeedbacks: state => state.refreshFeedbacks === true,
+        refreshVolunteers: state => state.refreshVolunteers === true,
+        showAlerts: state => state.showAlerts === true,
+        showFacts: state => state.showFacts === true,
+        showPOI: state => state.showPOI === true,
+        showAnalytics: state => state.showAnalytics === true,
+        showVolunteers: state => state.showVolunteers === true
     },
     actions: {},
     modules: {

@@ -1,9 +1,9 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-layout v-if="isLoaded" align-space-between justify-center row fill-height>
-        <v-flex xs12 sm12 md12 lg12 xl12 style="padding: 0px;">
+    <v-layout v-if="isLoaded" align-space-between justify-center row fill-height style="padding: 10px;">
+        <v-flex xs12>
             <v-layout column justify-center fill-height>
                 <v-flex>
-                    <v-toolbar class="mb-2" flat color="transparent">
+                    <v-toolbar>
                         <v-toolbar-title v-if="$store.state.role!=='facility_manager'" style="width: 200px;">
                             <v-select
                                 v-model="selectedSort"
@@ -41,54 +41,110 @@
                             ></v-select>
                         </v-toolbar-title>
                         <v-spacer></v-spacer>
-                        <v-btn dark color="#8c3404" @click="openSearchCaseDialog()">
-                            <v-icon>search</v-icon>{{ $t('cases.search') }}
+                        <v-btn flat v-if="$store.state.role !== 'network_manager'" dark color="cyan lighten-1" @click="openSearchCaseDialog()">
+                            {{ $t('cases.search') }}<v-icon right>search</v-icon>
                         </v-btn>
-                        <v-btn v-if="$caseManagerAndAbove.includes($store.state.role)" dark color="#F4B350" @click="loadCaseManagement">
-                            <v-icon>add</v-icon>{{ $t('cases.create') }}
+                        <v-btn flat v-if="$caseManagerAndAbove.includes($store.state.role)" dark color="#F4B350" @click="loadCaseManagement">
+                            {{ $t('cases.create') }}<v-icon right>create_new_folder</v-icon>
                         </v-btn>
-                        <v-btn v-else dark color="#F4B350" @click="loadCaseManagement">
-                            <v-icon>add</v-icon>{{ $t('cases.add_child') }}
+                        <v-btn v-else-if="$store.state.role === 'facility_manager'" dark color="#F4B350" @click="loadCaseManagement">
+                            <v-icon left>add</v-icon>{{ $t('cases.add_child') }}
                         </v-btn>
                     </v-toolbar>
                 </v-flex>
+                <br/>
                 <v-flex v-if="cases.length >= 1" fill-height>
                     <v-layout v-if="$store.state.role!=='facility_manager'" row wrap>
                         <v-flex xs12 sm6 md3 lg3 xl2 v-for="item in cases" :key="item.id" @click="loadCase(item)">
                             <v-card class="clickable_card" tile style="padding: 5px; margin: 5px 15px 15px 15px;">
                                 <v-img :src="getImagePath(item.profile_photo)" height="165px" class="tile_background">
-                                    <v-container fill-height fluid pa-2>
-                                        <v-layout justify-space-between class="tile_background_tags">
-                                            <v-flex v-if="item.amber_alert" class="tile_background_tag_left">
-                                                <span style="background-color: red; padding: 5px; border-radius: 2px;">Amber alert</span>
-                                            </v-flex>
-                                            <v-flex v-if="item.status === 'closed'" class="tile_background_tag_right">
-                                                <span style="background-color: green; padding: 5px; border-radius: 2px;">{{ item.status }}</span>
-                                            </v-flex>
-                                            <v-flex v-if="item.status === 'active'" class="tile_background_tag_right">
-                                                <span style="background-color: #555; padding: 5px; border-radius: 2px;">{{ item.status }}</span>
-                                            </v-flex>
+                                    <v-container fluid pa-2>
+                                        <v-tooltip v-if="item.amber_alert" bottom>
+                                            <template v-slot:activator="{ on }">
+                                                <v-chip v-on="on" small label dark color="warning">
+                                                    <v-icon>warning</v-icon>
+                                                </v-chip>
+                                            </template>
+                                            <span><b>{{ $t('case_info.amber_alert') }}</b></span>
+                                        </v-tooltip>
+                                        <v-tooltip v-if="item.status === 'active'" bottom>
+                                            <template v-slot:activator="{ on }">
+                                                <v-chip v-on="on" small label dark color="blue-grey darken-3">
+                                                    <v-icon>person_search</v-icon>
+                                                </v-chip>
+                                            </template>
+                                            <span><b>Missing</b></span>
+                                        </v-tooltip>
+                                        <v-tooltip v-if="item.status === 'closed'" bottom>
+                                            <template v-slot:activator="{ on }">
+                                                <v-chip v-on="on" small label dark color="teal darken-5">
+                                                    <v-icon>search_off</v-icon>
+                                                </v-chip>
+                                            </template>
+                                            <span><b>{{ item.status | title }}</b></span>
+                                        </v-tooltip>
+                                        <div v-if="item.organization!==$store.state.organizationId" style="margin-top: 90px;">
+                                            <v-tooltip bottom>
+                                                <template v-slot:activator="{ on }">
+                                                    <v-chip v-on="on" small label dark color="indigo lighten-2">
+                                                        <v-icon>folder_shared</v-icon>
+                                                    </v-chip>
+                                                </template>
+                                                <span>{{ $t('cases.shared_by') }}<b>{{item.organization_name}}</b></span>
+                                            </v-tooltip>
+                                        </div>
+                                        <div v-if="item.organization===$store.state.organizationId && item.is_shared===true" style="margin-top: 90px;">
+                                            <v-tooltip bottom>
+                                                <template v-slot:activator="{ on }">
+                                                    <v-chip v-on="on" small label dark color="primary">
+                                                        <v-icon>share</v-icon>
+                                                    </v-chip>
+                                                </template>
+                                                <span>{{ $t('cases.is_shared') }}</span>
+                                            </v-tooltip>
+                                        </div>
+                                        <v-tooltip v-if="item.status === 'inactive' && item.presence_status === 'transit'" bottom>
+                                            <template v-slot:activator="{ on }">
+                                                <v-chip v-on="on" small label dark color="pink darken-1">
+                                                    <v-icon>local_taxi</v-icon>
+                                                </v-chip>
+                                            </template>
+                                            <span><b>{{ $t('case_info.transit_small') | title }}</b></span>
+                                        </v-tooltip>
+                                        <v-tooltip v-if="item.status === 'inactive' && item.presence_status !== 'transit'" bottom>
+                                            <template v-slot:activator="{ on }">
+                                                <v-chip v-on="on" small label dark color="green darken-1">
+                                                    <v-icon>person</v-icon>
+                                                </v-chip>
+                                            </template>
+                                            <span><b>{{ $t('case_info.inactive') | title }}</b></span>
+                                        </v-tooltip>
+                                        <!-- <v-layout align-start justify-start row>
                                             <v-flex v-if="item.status === 'archived'" class="tile_background_tag_right">
                                                 <span style="background-color: #8c3404; padding: 5px; border-radius: 2px;">{{ item.status }}</span>
                                             </v-flex>
-                                            <v-flex v-if="item.status === 'inactive' && item.presence_status === 'transit'" class="tile_background_tag_right">
-                                                <span style="background-color: #800080; padding: 5px; border-radius: 2px;">transit</span>
-                                            </v-flex>
-                                            <v-flex v-if="item.status === 'inactive' && item.presence_status !== 'transit'" class="tile_background_tag_right">
-                                                <span style="background-color: #2FD1D4; padding: 5px; border-radius: 2px;">inactive</span>
-                                            </v-flex>
-                                        </v-layout>
+                                        </v-layout> -->
                                     </v-container>
                                 </v-img>
-                                <div style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;">
-                                    {{ item.first_name | title }} {{ item.last_name | title }}
-                                </div>
-                                <div v-if="item.status === 'inactive'" style="text-align: left; color: #C0C0C0;">
-                                    {{ $t('cases.arrival_at_facility') }}:<b>{{item.arrival_date | formatDate }}</b>
-                                </div>
-                                <div v-else style="text-align: left; color: #C0C0C0;">
-                                    {{ $t('cases.missing_from') }}:<b>{{item.disappearance_date | formatDate }}</b>
-                                </div>
+                                <v-list>
+                                    <v-divider></v-divider>
+                                    <v-list-tile>
+                                        <v-list-tile-content style="margin-left:-10px;">
+                                            <v-list-tile-title style="text-align: left; font-size: medium; font-weight: bold;">{{ item.first_name | title }} {{ item.last_name | title }}</v-list-tile-title>
+                                            <v-list-tile-sub-title v-if="item.status === 'inactive'" style="text-align: left; color: #C0C0C0;">
+                                                {{ $t('cases.arrival_at_facility') }}:<b>{{item.arrival_date | formatDate }}</b>
+                                            </v-list-tile-sub-title>
+                                            <v-list-tile-sub-title v-else style="text-align: left; color: #C0C0C0;">
+                                                {{ $t('cases.missing_from') }}:<b>{{item.disappearance_date | formatDate }}</b>
+                                            </v-list-tile-sub-title>
+                                        </v-list-tile-content>
+                                        <v-list-tile-action v-if="item.status==='active' && belongsToOrganization(item)" style="margin-right:-15px;">
+                                            <v-btn @click.stop="openShareDialog(item)" fab small dark color="primary">
+                                                <v-icon dark>share</v-icon>
+                                            </v-btn>
+                                        </v-list-tile-action>
+                                    </v-list-tile>
+                                </v-list>
                             </v-card>
                         </v-flex>
                     </v-layout>
@@ -111,7 +167,7 @@
                                     </v-container>
                                 </v-img>
                                 <div style="text-align: left; font-size: medium; font-weight: bold; margin-top: 10px;">
-                                    {{ item.last_name | title }} {{ item.first_name | title }}</div>
+                                    {{ item.first_name | title }} {{ item.last_name | title }}</div>
                                 <div style="text-align: left; color: #C0C0C0;">
                                     {{ $t('cases.arrival_date') }}:<b>{{item.arrival_date | formatDate }}</b>
                                 </div>
@@ -128,41 +184,75 @@
         </v-flex>
         <v-dialog v-model="searchCaseDialog" width="500" persistent @keydown.esc="searchCaseDialog=false;">
             <v-card>
-                <v-toolbar color="white">
+                <v-toolbar>
                     <v-toolbar-title class='title'>{{ $t('cases.search_child') }}</v-toolbar-title>
-                    <v-spacer></v-spacer>
-                    <v-btn color="gray" icon @click="searchCaseDialog=false"><v-icon>close</v-icon></v-btn>
                 </v-toolbar>
                 <v-toolbar flat color="white">
                     <v-text-field label="Child name" flat class="mt-2" v-model="searchName"></v-text-field>
-                    <v-toolbar-title>
-                        <v-btn small @click="loadChildren()"><v-icon>search</v-icon>{{ $t('cases.search') }}</v-btn>
-                    </v-toolbar-title>
                 </v-toolbar>
                 <v-divider></v-divider>
                 <v-list v-if="children.length > 0" two-line class="mx-2" style="height: 500px; overflow-y: scroll;">
                     <template v-for="(item, index) in children">
                         <v-subheader v-if="item.header" :key="item.header">{{ item.header }}</v-subheader>
-                        <v-divider v-else-if="item.divider" :key="index" :inset="item.inset"></v-divider>
+                        <!-- <v-divider v-else-if="item.divider" :key="index" :inset="item.inset"></v-divider> -->
                         <v-list-tile v-else :key="item.title" avatar>
                             <!-- <v-avatar style="background-color: #CCC" size=36 class="mr-2">{{ item.rank }}</v-avatar> -->
                             <v-list-tile-content>
-                                <v-list-tile-title>{{ item.first_name }} {{ item.last_name }}</v-list-tile-title>
-                                <v-list-tile-sub-title>{{ item.status }}</v-list-tile-sub-title>
+                                <v-list-tile-title>{{ item.first_name | title }} {{ item.last_name | title }}</v-list-tile-title>
+                                <v-list-tile-sub-title><v-chip small label style="margin-left: -5px;">{{ item.status }}</v-chip></v-list-tile-sub-title>
                             </v-list-tile-content>
-                            <v-btn v-if="item.status !== 'active'" @click="createNewCase(item)" icon color="#038add" dark><v-icon>add</v-icon></v-btn>
-                            <v-btn @click="goToCase(item.case_id)" icon color="#b503dd" dark><v-icon>description</v-icon></v-btn>
+                            <v-btn v-if="item.status !== 'active'" @click="createNewCase(item)" icon color="primary" dark><v-icon>create_new_folder</v-icon></v-btn>
+                            <v-btn v-if="item.status !== 'archived'" @click="goToCase(item.case_id)" icon color="blue" dark><v-icon>folder_open</v-icon></v-btn>
+                            <v-btn v-else @click="goToArchivedCase(item.case_id)" icon color="blue" dark><v-icon>folder_open</v-icon></v-btn>
                         </v-list-tile>
+                        <v-divider v-if="index<children.length-1"></v-divider>
                     </template>
                 </v-list>
-                <v-parallax v-else dark style="background-color: #C3C3C3;" height="300">
-                    <v-layout align-center justify-center row fill-height>
-                        <v-flex sm12 class="text-center">
-                            <h1 class="display-1 font-weight-thin mb-3">{{ $t('cases.no_children') }}</h1>
-                            <h4 class="subheading">{{ $t('cases.no_children_criteria') }}</h4>
-                        </v-flex>
-                    </v-layout>
-                </v-parallax>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn flat color="grey" @click="searchCaseDialog=false">{{ $t('cases.cancel') }}</v-btn>
+                    <v-btn flat color="cyan lighten-1" @click="loadChildren()">{{ $t('cases.search') }}</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="shareCaseDialog" width="700">
+            <v-toolbar>
+                    <v-toolbar-title class="mt-3">[{{ caseId }}] <b>{{ caseObject.custom_name }}</b></v-toolbar-title>
+            </v-toolbar>
+            <v-card>
+                <v-toolbar flat color="white">
+                    <v-toolbar-title class="mt-3">{{ $t('cases.shared_to_organizations') }}</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-text-field
+                        v-model="dialogSearch"
+                        prepend-icon="search"
+                        clearable
+                        :label="$t('cases.search')"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+            </v-toolbar>
+                <v-data-table :headers="organizationHeaders" :items="organizations" v-model="selected" :search="dialogSearch" style="margin-top:-5px;">
+                    <template v-slot:items="props">
+                        <tr @click="props.item.selected = !props.item.selected" :active="props.item.selected">
+                            <td>
+                                <v-checkbox :input-value="props.item.selected" primary hide-details></v-checkbox>
+                            </td>
+                            <td class="text-xs-left">{{ props.item.id }}</td>
+                            <td class="text-xs-left">{{ props.item.name || ' - ' | title }}</td>
+                        </tr>
+                    </template>
+                    <v-alert v-slot:no-results :value="true" color="error" icon="warning">
+                        {{ $t('cases.no_records') }}
+                    </v-alert>
+                </v-data-table>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn flat color="grey" @click="shareCaseDialog = false;">{{ $t('volunteers.close') }}</v-btn>
+                    <v-btn flat color="primary" @click="share()">{{ $t('cases.share') }}</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-layout>
@@ -170,8 +260,7 @@
 
 <script>
 import { dates, fonts } from '@/utils/mixins';
-import { CasesApi } from '@/api';
-
+import { CasesApi, OrganizationsApi } from '@/api';
 
 export default {
     mixins: [dates, fonts],
@@ -186,6 +275,34 @@ export default {
             searchName: '',
             searchCaseDialog: false,
             children: [],
+            shareCaseDialog: false,
+            dialogSearch: '',
+            caseId: null,
+            caseObject: {},
+            organizations: [],
+            sharedCases: [],
+            selected: [],
+            organizationHeaders: [
+                {
+                    text: '',
+                    value: 'selected',
+                    width: '1%',
+                    align: '',
+                    sortable: false,
+                },
+                {
+                    text: 'Id',
+                    value: 'id',
+                    width: '5%',
+                    align: 'left',
+                },
+                {
+                    text: this.$t('cases.organization_name'),
+                    value: 'name',
+                    width: '95%',
+                    align: 'left',
+                },
+            ],
             sortItems: [
                 {
                     text: this.$t('cases.sort.disappearance_date'),
@@ -209,10 +326,10 @@ export default {
                     text: this.$t('cases.filter.closed'),
                     value: 'closed',
                 },
-                {
-                    text: this.$t('cases.filter.archived'),
-                    value: 'archived',
-                },
+                // {
+                //     text: this.$t('cases.filter.archived'),
+                //     value: 'archived',
+                // },
             ],
             facilitySortItems: [
                 {
@@ -246,6 +363,8 @@ export default {
         } else {
             await this.loadFacilityCases();
         }
+        const { data: organizations } = await OrganizationsApi.others();
+        this.organizations = organizations;
         this.isLoaded = true;
     },
     methods: {
@@ -277,6 +396,12 @@ export default {
         goToCase(caseId) {
             this.$router.push({ name: 'info', params: { id: caseId } });
         },
+        belongsToOrganization(caseobject) {
+            return caseobject.organization === this.$store.state.organizationId;
+        },
+        goToArchivedCase(caseId) {
+            this.$router.push({ name: 'archived_case_info', params: { id: caseId } });
+        },
         createNewCase(child) {
             this.$router.push({ name: 'case_new', params: { childId: child.id } });
         },
@@ -303,17 +428,16 @@ export default {
         },
         async loadCases() {
             let params = {};
+            if (this.selectedFilter === 'all') {
+                params = { is_active: 'all' };
+            }
             if (this.selectedFilter === 'active') {
                 params = { is_active: 'true' };
             }
             if (this.selectedFilter === 'closed') {
                 params = { is_active: 'false' };
             }
-            if (this.selectedFilter === 'archived') {
-                params = { is_active: 'archived' };
-            }
             const { data: cases } = await CasesApi.all(params);
-            console.log(cases);
             const regex = /http:/gi;
             for (let i = 0; i < cases.length; i++) {
                 if (cases[i].profile_photo !== null) {
@@ -322,7 +446,6 @@ export default {
                     }
                 }
             }
-            console.log(cases);
             this.cases = cases;
             this.applySort();
         },
@@ -341,6 +464,27 @@ export default {
             this.cases = cases;
             this.facilityApplySort();
         },
+        async openShareDialog(caseObject) {
+            this.caseId = caseObject.id;
+            this.caseObject = caseObject;
+            console.log(caseObject);
+            const { data: sharedCases } = await CasesApi.shared_organizations({caseId: this.caseId});
+            this.sharedCases = sharedCases;
+            for (let index = 0; index < this.organizations.length; index++) {
+                let isSelected = sharedCases.filter(sharedCase => sharedCase.organization === this.organizations[index].id)
+                if (isSelected.length > 0) {
+                    this.organizations[index].selected = true;
+                } else {
+                    this.organizations[index].selected = false;
+                }
+            }
+            this.shareCaseDialog = true;
+        },
+        async share() {
+            const { data: sharedCases } = await CasesApi.shared_to_organizations({organizations: this.organizations}, {caseId: this.caseId});
+            this.shareCaseDialog = false;
+            this.loadCases();
+        }
     },
 };
 </script>
@@ -352,7 +496,7 @@ export default {
 
 .tile_background {
     height: 165px;
-    background-color: #c3c3c3;
+    /* background-color: #EEEEEE; */
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -377,10 +521,11 @@ export default {
 }
 
 .clickable_card:hover .tile_background {
-    transform: scale(1.02);
+    /* transform: scale(1.02); */
 }
 
 .clickable_card:hover {
     cursor: pointer;
 }
 </style>
+

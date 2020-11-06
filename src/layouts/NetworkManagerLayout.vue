@@ -17,33 +17,33 @@
                             </div>
                             <div style="color: gray; fontSize: 12px; text-align: right; margin-top: -5px;"
                                  class="text-lowercase">
-                                Network Manager
+                                {{ $t('layouts.network_manager') }}
                             </div>
                         </span>
                         <v-icon>keyboard_arrow_down</v-icon>
                     </v-btn>
                     <v-list subheader dense>
                         <v-list-tile @click="profileView()">
-                            <v-list-tile-title>Profile</v-list-tile-title>
+                            <v-list-tile-title>{{ $t('layouts.profile') }}</v-list-tile-title>
                         </v-list-tile>
                         <v-list-tile @click="logout">
-                            <v-list-tile-title>Log out</v-list-tile-title>
+                            <v-list-tile-title>{{ $t('layouts.log_out') }}</v-list-tile-title>
                         </v-list-tile>
                     </v-list>
                 </v-menu>
             </v-toolbar-items>
-            <template v-slot:extension v-if="$route.meta.toolbar">
+            <template v-slot:extension v-if="$route.meta.toolbar && caseObject.status!=='archived' && caseObject.status!==null && caseObject.status!==undefined">
                 <v-tabs v-model="tab" color="transparent" align-with-title class="ml-0 pl-0">
                     <v-tabs-slider color="#FBA621" />
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/info`">Case</v-tab>
-                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/additional-info`">Additional info</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/alerts`">Alerts</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/feedbacks`">Facts</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/volunteers`">Volunteers</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/files`">Files</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/places`">Places</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/control`">Control</v-tab>
-                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/analytics`">Analytics</v-tab>
+                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/info`">{{ $t('layouts.case') }}</v-tab>
+                    <v-tab :ripple="false" :to="`/cases/${$route.params.id}/additional-info`">{{ $t('layouts.additional_info') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive' && caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/alerts`">{{ $t('layouts.alerts') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive' && caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/feedbacks`">{{ $t('layouts.facts') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive' && caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/volunteers`">{{ $t('layouts.volunteers') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive'" :ripple="false" :to="`/cases/${$route.params.id}/files`">{{ $t('layouts.files') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive' && caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/places`">{{ $t('layouts.places') }}</v-tab>
+                    <v-tab v-if="caseObject.status!=='inactive' && caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/control`">{{ $t('layouts.control') }}</v-tab>
+                    <v-tab v-if="caseObject.organization===$store.state.organizationId" :ripple="false" :to="`/cases/${$route.params.id}/analytics`">{{ $t('layouts.analytics') }}</v-tab>
                 </v-tabs>
             </template>
         </v-toolbar>
@@ -55,7 +55,7 @@
                             <img src="../assets/images/default_photo.png"/>
                         </v-list-tile-avatar>
                         <v-list-tile-content>
-                            <v-list-tile-title><span style="font-size: 20px;">Child Rescue</span></v-list-tile-title>
+                            <v-list-tile-title><span style="font-size: 20px;">{{ $t('layouts.child_rescue') }}</span></v-list-tile-title>
                         </v-list-tile-content>
                     </v-list-tile>
                 </v-list>
@@ -63,12 +63,12 @@
             <v-list style="padding-top:0px;">
                 <v-divider></v-divider>
                 <template v-for="(item) in drawerItems">
-                    <v-row v-if="item.heading" :key="item.heading"  align="center">
+                    <v-row v-if="item.heading" :key="item.heading" align="center">
                         <v-col cols="6">
                             <v-subheader v-if="item.heading">{{ item.heading }}</v-subheader>
                         </v-col>
                         <v-col cols="6" class="text-center">
-                            <a href="#" class="body-2 black--text">EDIT</a>
+                            <a href="#" class="body-2 black--text">{{ $t('layouts.edit') }}</a>
                         </v-col>
                     </v-row>
                     <v-list-group
@@ -151,7 +151,8 @@ import { bus } from '../main';
 import { Snackbar } from '@/components';
 import { UsersApi, OrganizationsApi, CasesApi } from '@/api';
 import { dates, filters, fonts } from '@/utils/mixins';
-import { CLEAR_TOKEN, SET_ROLE, SET_ORGANIZATION, SET_FACILITY } from '@/store/mutation-types';
+import { CLEAR_TOKEN, SET_ROLE, SET_ORGANIZATION, SET_FACILITY, SET_REFRESH_CONTROL, SET_REFRESH_FEED, SET_SHOW_ALERTS, SET_SHOW_FACTS, SET_SHOW_POI, SET_SHOW_ANALYTICS, SET_SHOW_VOLUNTEERS, SET_REFRESH_FEEDBACKS, SET_REFRESH_VOLUNTEERS } from '@/store/mutation-types';
+
 
 export default {
     name: 'app',
@@ -159,7 +160,7 @@ export default {
     mixins: [dates, filters, fonts],
     data: () => ({
         isLoaded: false,
-        caseObject: null,
+        caseObject: {status: ""},
         tabs: false,
         tab: null,
         userObject: null,
@@ -169,20 +170,6 @@ export default {
         language: null,
         name: null,
         drawerItems: [
-            {
-                isActive: true,
-                isEnabled: true,
-                icon: 'dashboard',
-                text: 'Dashboard',
-                routerLink: '/',
-            },
-            {
-                isActive: false,
-                isEnabled: true,
-                icon: 'list',
-                text: 'Case Management',
-                routerLink: '/cases',
-            },
         ],
     }),
     computed: {
@@ -210,14 +197,32 @@ export default {
         },
     },
     created() {
+        this.drawerItems.push({
+            isActive: true,
+            isEnabled: true,
+            icon: 'dashboard',
+            text: this.$t('layouts.dashboard'),
+            routerLink: '/',
+        },
+        {
+            isActive: false,
+            isEnabled: true,
+            icon: 'list',
+            text: this.$t('layouts.case_management'),
+            routerLink: '/cases',
+        });
         this.loadData();
         this.initEvents();
     },
     methods: {
         async invalidateToolbar() {
-            if (this.isToolbarActive) {
+            if (this.isToolbarActive && this.$store.state.token !== null) {
                 const { data: caseObject } = await CasesApi.get(this.$route.params.id);
                 this.caseObject = caseObject;
+                if (caseObject.status === "archived") {
+                    const { data: caseObject } = await CasesApi.anonymizedCase(this.$route.params.id);
+                    this.caseObject = caseObject;
+                }
                 this.titleStyle.color = this.getColor();
                 this.name = `${this.caseObject.first_name} ${this.caseObject.last_name}`;
                 this.isToolbarActiveFlag = true;
@@ -240,6 +245,15 @@ export default {
             }
         },
         async logout() {
+            this.$store.commit(SET_REFRESH_CONTROL, false);
+            this.$store.commit(SET_REFRESH_FEED, false);
+            this.$store.commit(SET_REFRESH_FEEDBACKS, false);
+            this.$store.commit(SET_REFRESH_VOLUNTEERS, false);
+            this.$store.commit(SET_SHOW_ALERTS, false);
+            this.$store.commit(SET_SHOW_FACTS, false);
+            this.$store.commit(SET_SHOW_POI, false);
+            this.$store.commit(SET_SHOW_ANALYTICS, false);
+            this.$store.commit(SET_SHOW_VOLUNTEERS, false);
             await UsersApi.logout();
             this.$store.commit(CLEAR_TOKEN);
             this.$router.push({ name: 'login' });

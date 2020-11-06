@@ -1,31 +1,40 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-card class="my-2 mx-4">
-        <v-toolbar dense flat>
-            <span v-if="postObject.role==='volunteer'" class="green--text">{{ postObject.name | title }}</span>
-            <span v-else class="blue--text">{{ postObject.name | title }}</span>
-            <v-spacer></v-spacer>
-            <span class="grey--text caption">{{ postObject.created_at | formatDateTime }}</span>
-        </v-toolbar>
-        <a v-if="postObject.image" :href="postObject.image" target="_blank"><v-img :contain="postObject.image !== null ? false : true" :src="postObject.image" style="max-height: 230px;" class="white--text align-end">
-            <v-toolbar flat dense color="rgba(0, 0, 0, 0.2)">
-                <v-icon v-if="postObject.is_visible_to_volunteers" color="green" small label outline>visibility</v-icon>
-                <v-icon v-else color="grey" small label outline>visibility_off</v-icon>
-                &nbsp;
-                <v-chip color="secondary" small label outline>#{{ postObject.tag }}</v-chip>
-                <v-btn v-if="postObject.role==='volunteer'" icon><v-icon color="green">note_add</v-icon></v-btn>
-            </v-toolbar>
-        </v-img></a>
-        <gmap-map v-if="postObject.latitude" :center="center" :zoom="18" :options="mapOptions" class="py-2 px-2"
-                  style="width:100%; height: 230px;">
+    <v-card class="my-2 mx-4 pt-2" style="border-radius: 10px;">
+        <v-list-tile avatar>
+            <v-list-tile-avatar>
+                <v-icon v-if="postObject.role==='volunteer'" large color="blue lighten-2">person</v-icon>
+                <v-icon v-else large color="green darken-2">admin_panel_settings</v-icon>
+            </v-list-tile-avatar>
+            <v-list-tile-content>
+                <v-list-tile-title class="subheading font-weight-bold">{{ postObject.name | title }} <v-icon small label outline>keyboard_arrow_right</v-icon>{{ postObject.tag | title }}</v-list-tile-title>
+                <v-list-tile-title v-if="postObject.address && postObject.image">at <span class="subheading font-weight-bold">{{ postObject.address | title }}</span></v-list-tile-title>
+                <v-list-tile-sub-title class="grey--text">
+                    {{ postObject.created_at | formatDateTime }} ·
+                    <v-icon v-if="postObject.is_visible_to_volunteers" small label outline>public</v-icon>
+                    <v-icon v-else color="grey" small label outline>people</v-icon>
+                </v-list-tile-sub-title>
+            </v-list-tile-content>
+        </v-list-tile>
+        <div v-if="postObject.description" class='body-1 mx-4 my-2 pb-2'>{{ postObject.description || "-" | title}}</div>
+        <a v-if="postObject.image" :href="postObject.image" target="_blank" class="mb-2 pb-2">
+            <v-img :contain="postObject.image !== null ? false : true" :src="postObject.image" style="max-height: 230px;" class="white--text align-end mb-2 pb-2"></v-img>
+        </a>
+        <gmap-map v-if="postObject.address && !postObject.image" :center="center" :zoom="18" :options="mapOptions" class="py-2 px-4"
+                  style="width:100%; height: 200px;">
             <gmap-marker v-for="(m, index) in markers" :key="index" :position="m.position" :clickable="false"
                          :draggable="false" @click="center=m.position"/>
             <gmap-circle v-for="(m) in markers" :key="m.id" :radius="m.radius" :center="m.position" :clickable="false" :draggable="false"
                          :options="{fillColor:'red', fillOpacity:0.1, strokeWidth:1, strokeColor:'red', strokePattern: 'gap' }"/>
         </gmap-map>
-        <v-divider v-if="postObject.description"></v-divider>
-        <v-card-title v-if="postObject.description">
-            <div class='caption font-weight-light mx-2 my-0'>{{ postObject.description || "-" | title}}</div>
-        </v-card-title>
+        <v-list-tile v-if="postObject.address && !postObject.image" avatar style="background: #828282; color: #E7F3FF;" class="pb-2">
+            <v-list-tile-avatar>
+                <v-icon large color="#E7F3FF">location_on</v-icon>
+            </v-list-tile-avatar>
+            <v-list-tile-content>
+                <v-list-tile-title class="subheading">Address</v-list-tile-title>
+                <v-list-tile-title class="subheading font-weight-bold">{{ postObject.address | title }}</v-list-tile-title>
+            </v-list-tile-content>
+        </v-list-tile>
     </v-card>
 </template>
 
@@ -48,18 +57,16 @@ export default {
             currentPlace: null,
             autocomplete: null,
             mapOptions: {
-                // disableDefaultUI: true,
+                disableDefaultUI: true,
                 scrollwheel: false,
-                zoomControl: true,
-                mapTypeControl: true,
-                streetViewControl: true,
+                zoomControl: false,
+                mapTypeControl: false,
+                streetViewControl: false,
             },
             place: null,
         };
     },
     created() {
-        console.log('WE');
-        console.log(this.postObject);
         this.geolocate();
     },
     methods: {

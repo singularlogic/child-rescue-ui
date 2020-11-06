@@ -35,7 +35,7 @@ export default {
                 case null:
                     return EmptyLayout;
                 default:
-                    return AppLayout;
+                    return EmptyLayout;
                 }
             }
         },

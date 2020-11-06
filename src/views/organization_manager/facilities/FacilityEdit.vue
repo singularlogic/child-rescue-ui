@@ -185,7 +185,7 @@ export default {
             rules: {
                 required: value => (!!value || value === false) || this.$t('facility.rules_required'),
                 address: value => (value && value.length > 5 && value.length < 250) || this.$t('facility.address_rules'),
-                name: value => (value && value.length >= 3 && value.length <= 20) || this.$t('facility.rules_name'),
+                name: value => (value && value.length >= 3 && value.length <= 250) || this.$t('facility.rules_name'),
                 capacity: value => (value && value > 0 && value <= 1000) || this.$t('facility.rules_capacity'),
                 phone: value => ((value && value.length === 10) || !value) || this.$t('facility.rules_phone'),
                 email: value => ((value && /.+@.+/.test(value)) || !value) || this.$t('facility.rules_email'),
