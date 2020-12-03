@@ -1,4 +1,5 @@
-# child-rescue-web
+# ChildRescue UI components
+Written mainly in Vue.js
 
 ## Project setup
 ```
