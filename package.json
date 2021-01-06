@@ -11,7 +11,7 @@
     "dependencies": {
         "@babel/polyfill": "^7.0.0",
         "apexcharts": "^3.16.1",
-        "axios": "^0.18.0",
+        "axios": "^0.21.1",
         "exif-js": "^2.3.0",
         "google-maps": "^3.3.0",
         "google-places-autocomplete-service": "0.0.3",
