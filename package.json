@@ -16,7 +16,7 @@
         "google-maps": "^3.3.0",
         "google-places-autocomplete-service": "0.0.3",
         "html2canvas": "^1.0.0-rc.5",
-        "jspdf": "^1.5.3",
+        "jspdf": "^2.3.1",
         "moment": "^2.23.0",
         "numeral": "^2.0.6",
         "ramda": "^0.26.1",
